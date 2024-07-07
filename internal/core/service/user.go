@@ -2,14 +2,15 @@ package service
 
 import (
 	"context"
-	user2 "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain/user"
+	user2 "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ops"
 )
 
 type UserService struct {
-	userOps *user2.Ops
+	userOps *ops.Ops
 }
 
-func NewUserService(userOps *user2.Ops) *UserService {
+func NewUserService(userOps *ops.Ops) *UserService {
 	return &UserService{
 		userOps: userOps,
 	}

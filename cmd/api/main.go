@@ -2,8 +2,8 @@ package main
 
 import (
 	http_server "github.com/GoBootCamp-Group1/Task-Management/api/http"
+	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
 	"github.com/GoBootCamp-Group1/Task-Management/config"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,7 +12,7 @@ import (
 func main() {
 	cfg := readConfig()
 
-	app, err := service.NewAppContainer(cfg)
+	app, err := app.NewAppContainer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

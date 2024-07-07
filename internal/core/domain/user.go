@@ -1,18 +1,11 @@
-package user
+package domain
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 )
-
-type Repo interface {
-	Create(ctx context.Context, user *User) error
-	GetByID(ctx context.Context, id uint) (*User, error)
-	GetByEmail(ctx context.Context, email string) (*User, error)
-}
 
 var (
 	ErrUserNotFound    = errors.New("User not found")

@@ -2,25 +2,25 @@ package mappers
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain/user"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"gorm.io/gorm"
 )
 
-func UserEntityToDomain(entity *entities.User) *user.User {
-	return &user.User{
+func UserEntityToDomain(entity *entities.User) *domain.User {
+	return &domain.User{
 		ID:       entity.ID,
 		Name:     entity.Name,
 		Email:    entity.Email,
 		Password: entity.Password,
-		Role:     user.UserRole(entity.Role),
+		Role:     domain.UserRole(entity.Role),
 	}
 }
 
-func DomainToUserEntity(model *user.User) *entities.User {
+func DomainToUserEntity(model *domain.User) *entities.User {
 	return &entities.User{
 		Model:    gorm.Model{ID: model.ID},
 		Name:     model.Name,
 		Email:    model.Email,
-		Password: user.HashPassword(model.Password),
+		Password: domain.HashPassword(model.Password),
 	}
 }

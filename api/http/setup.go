@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/middlerwares"
+	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
@@ -11,7 +12,7 @@ import (
 	"log"
 )
 
-func Run(cfg config.Server, app *service.AppContainer) {
+func Run(cfg config.Server, app *app.AppContainer) {
 	fiberApp := fiber.New()
 	api := fiberApp.Group("/api/v1", middlerwares.SetUserContext())
 
@@ -40,7 +41,7 @@ func registerUsersAPI(router fiber.Router, _ *service.UserService, secret []byte
 	})
 }
 
-func registerGlobalRoutes(router fiber.Router, app *service.AppContainer) {
+func registerGlobalRoutes(router fiber.Router, app *app.AppContainer) {
 	router.Post("/signup", handlers.SignUpUser(app.UserService()))
 	router.Post("/login", handlers.LoginUser(app.AuthService()))
 	router.Get("/refresh", handlers.RefreshCreds(app.AuthService()))

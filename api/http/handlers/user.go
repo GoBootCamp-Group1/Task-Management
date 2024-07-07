@@ -3,7 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain/user"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"time"
 
@@ -22,7 +22,7 @@ func SignUpUser(userService *service.UserService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
-		userModel := user.User{
+		userModel := domain.User{
 			Email:    input.Email,
 			Name:     input.Name,
 			Password: input.Password,

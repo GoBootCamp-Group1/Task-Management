@@ -1,9 +1,10 @@
-package service
+package app
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	storage2 "github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain/user"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ops"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"log"
 
 	"gorm.io/gorm"
@@ -12,8 +13,8 @@ import (
 type AppContainer struct {
 	cfg         config.Config
 	dbConn      *gorm.DB
-	userService *UserService
-	authService *AuthService
+	userService *service.UserService
+	authService *service.AuthService
 }
 
 func NewAppContainer(cfg config.Config) (*AppContainer, error) {
@@ -34,11 +35,11 @@ func (a *AppContainer) RawRBConnection() *gorm.DB {
 	return a.dbConn
 }
 
-func (a *AppContainer) UserService() *UserService {
+func (a *AppContainer) UserService() *service.UserService {
 	return a.userService
 }
 
-func (a *AppContainer) AuthService() *AuthService {
+func (a *AppContainer) AuthService() *service.AuthService {
 	return a.authService
 }
 
@@ -46,7 +47,7 @@ func (a *AppContainer) setUserService() {
 	if a.userService != nil {
 		return
 	}
-	a.userService = NewUserService(user.NewOps(storage2.NewUserRepo(a.dbConn)))
+	a.userService = service.NewUserService(ops.NewOps(storage2.NewUserRepo(a.dbConn)))
 }
 
 func (a *AppContainer) mustInitDB() {
@@ -67,7 +68,7 @@ func (a *AppContainer) setAuthService() {
 		return
 	}
 
-	a.authService = NewAuthService(user.NewOps(storage2.NewUserRepo(a.dbConn)), []byte(a.cfg.Server.TokenSecret),
+	a.authService = service.NewAuthService(ops.NewOps(storage2.NewUserRepo(a.dbConn)), []byte(a.cfg.Server.TokenSecret),
 		a.cfg.Server.TokenExpMinutes,
 		a.cfg.Server.RefreshTokenExpMinutes)
 }
