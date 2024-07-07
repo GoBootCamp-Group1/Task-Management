@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,6 +22,10 @@ func Auth(secret []byte) fiber.Handler {
 		}
 
 		c.Locals(jwt.UserClaimKey, claims)
+
+		if claims.ExpiresAt.Before(time.Now()) {
+			return handlers.SendError(c, errors.New("token expired"), fiber.StatusUnauthorized)
+		}
 
 		return c.Next()
 	}
