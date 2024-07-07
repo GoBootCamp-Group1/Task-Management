@@ -6,7 +6,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	user_port "github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
+	user_port "github.com/GoBootCamp-Group1/Task-Management/internal/core/port/user"
 	"gorm.io/gorm"
 )
 
@@ -27,25 +27,6 @@ func (r *userRepo) Create(ctx context.Context, user *domain.User) error {
 		if err != nil {
 			return err
 		}
-
-		//var userRoles []entities.UserRoles
-		//if len(user.Roles) > 0 {
-		//	for _, role := range user.Roles {
-		//		ur := entities.UserRoles{
-		//			UserId: user.ID,
-		//			RoleId: role.ID,
-		//		}
-		//		userRoles = append(userRoles, ur)
-		//	}
-		//} else {
-		//	userRoles = append(userRoles, entities.UserRoles{
-		//		UserId: entity.ID,
-		//		RoleId: role.DefaultRole.ID,
-		//	})
-		//}
-		//if err = tx.Create(&userRoles).Error; err != nil {
-		//	return err
-		//}
 
 		return nil
 	})

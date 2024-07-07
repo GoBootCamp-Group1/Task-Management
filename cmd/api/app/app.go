@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	storage2 "github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ops"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"log"
 
@@ -47,7 +46,7 @@ func (a *AppContainer) setUserService() {
 	if a.userService != nil {
 		return
 	}
-	a.userService = service.NewUserService(ops.NewOps(storage2.NewUserRepo(a.dbConn)))
+	a.userService = service.NewUserService(storage2.NewUserRepo(a.dbConn))
 }
 
 func (a *AppContainer) mustInitDB() {
@@ -68,7 +67,7 @@ func (a *AppContainer) setAuthService() {
 		return
 	}
 
-	a.authService = service.NewAuthService(ops.NewOps(storage2.NewUserRepo(a.dbConn)), []byte(a.cfg.Server.TokenSecret),
+	a.authService = service.NewAuthService(storage2.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
 		a.cfg.Server.TokenExpMinutes,
 		a.cfg.Server.RefreshTokenExpMinutes)
 }

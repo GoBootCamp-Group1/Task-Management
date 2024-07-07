@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	user2 "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ops"
+	user_model "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
+	user_repo "github.com/GoBootCamp-Group1/Task-Management/internal/core/port/user"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"time"
 
@@ -11,16 +11,16 @@ import (
 )
 
 type AuthService struct {
-	userOps                *ops.Ops
+	userRepo               *user_repo.Repo
 	secret                 []byte
 	tokenExpiration        uint
 	refreshTokenExpiration uint
 }
 
-func NewAuthService(userOps *ops.Ops, secret []byte,
+func NewAuthService(userRepo user_repo.Repo, secret []byte,
 	tokenExpiration uint, refreshTokenExpiration uint) *AuthService {
 	return &AuthService{
-		userOps:                userOps,
+		userRepo:               &userRepo,
 		secret:                 secret,
 		tokenExpiration:        tokenExpiration,
 		refreshTokenExpiration: refreshTokenExpiration,
@@ -34,7 +34,12 @@ type UserToken struct {
 }
 
 func (s *AuthService) Login(ctx context.Context, email, pass string) (*UserToken, error) {
-	user, err := s.userOps.GetUserByEmailAndPassword(ctx, email, pass)
+	user, err := (*s.userRepo).GetByEmail(ctx, email)
+
+	if !user.PasswordIsValid(pass) {
+		return nil, user_model.ErrInvalidPassword
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -68,13 +73,13 @@ func (s *AuthService) RefreshAuth(ctx context.Context, refreshToken string) (*Us
 		return nil, err
 	}
 
-	u, err := s.userOps.GetUserByID(ctx, claim.UserID)
+	u, err := (*s.userRepo).GetByID(ctx, claim.UserID)
 	if err != nil {
 		return nil, err
 	}
 
 	if u == nil {
-		return nil, user2.ErrUserNotFound
+		return nil, user_model.ErrUserNotFound
 	}
 
 	// calc expiration time values
@@ -94,7 +99,7 @@ func (s *AuthService) RefreshAuth(ctx context.Context, refreshToken string) (*Us
 	}, nil
 }
 
-func (s *AuthService) userClaims(user *user2.User, exp time.Time) *jwt.UserClaims {
+func (s *AuthService) userClaims(user *user_model.User, exp time.Time) *jwt.UserClaims {
 	return &jwt.UserClaims{
 		RegisteredClaims: jwt2.RegisteredClaims{
 			ExpiresAt: &jwt2.NumericDate{
