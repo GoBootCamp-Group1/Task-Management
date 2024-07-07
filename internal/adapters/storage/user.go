@@ -20,7 +20,20 @@ func NewUserRepo(db *gorm.DB) user_port.Repo {
 	}
 }
 
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
+)
+
 func (r *userRepo) Create(ctx context.Context, user *domain.User) error {
+	var existingUser *entities.User
+	err := r.db.WithContext(ctx).Model(&entities.User{}).Where("email = ?", user.Email).First(&existingUser).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if existingUser.ID != 0 {
+		return ErrUserAlreadyExists
+	}
+
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToUserEntity(user)
 		err := tx.WithContext(ctx).Create(&entity).Error
