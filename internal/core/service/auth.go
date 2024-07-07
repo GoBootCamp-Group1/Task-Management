@@ -36,6 +36,10 @@ type UserToken struct {
 func (s *AuthService) Login(ctx context.Context, email, pass string) (*UserToken, error) {
 	user, err := (*s.userRepo).GetByEmail(ctx, email)
 
+	if user == nil {
+		return nil, user_model.ErrUserNotFound
+	}
+
 	if !user.PasswordIsValid(pass) {
 		return nil, user_model.ErrInvalidPassword
 	}
