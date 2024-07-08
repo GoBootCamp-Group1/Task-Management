@@ -3,6 +3,7 @@ package config
 type Config struct {
 	Server Server `mapstructure:"server"`
 	DB     DB     `mapstructure:"db"`
+	Redis  Redis  `mapstructure:"redis"`
 }
 
 type Server struct {
@@ -19,4 +20,10 @@ type DB struct {
 	Host   string `mapstructure:"host"`
 	Port   int    `mapstructure:"port"`
 	DBName string `mapstructure:"db_name"`
+}
+
+type Redis struct {
+	Address  string `mapstructure:"address"`
+	Password string `mapstructure:"password"`
+	DB       string `mapstructure:"db"`
 }
