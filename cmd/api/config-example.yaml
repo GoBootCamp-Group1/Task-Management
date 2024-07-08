@@ -1,12 +1,12 @@
 server:
-  http_port: 8082
+  http_port: 8080
   host: "localhost"
   token_exp_minutes: 1440
   refresh_token_exp_minute: 2880 
   token_secret: "P@$$%Secret6677"
 db:
   user: "postgres"
-  pass: "root"
+  pass: "postgres"
   host : "localhost"
   port: 5432
   db_name: "task-management"

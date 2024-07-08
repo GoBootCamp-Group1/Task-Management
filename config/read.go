@@ -13,13 +13,6 @@ func ReadGeneric[T any](cfgPath string) (T, error) {
 		return cfg, err
 	}
 
-	// configPath := filepath.Dir(fullAbsPath)
-	// viper.AddConfigPath(configPath)
-	// configType := strings.TrimPrefix(filepath.Ext(fullAbsPath), ".")
-	// viper.SetConfigType(configType)
-	// configFile := strings.TrimSuffix(filepath.Base(fullAbsPath), filepath.Ext(fullAbsPath))
-	// viper.SetConfigName(configFile)
-
 	viper.SetConfigFile(fullAbsPath)
 
 	viper.AutomaticEnv()

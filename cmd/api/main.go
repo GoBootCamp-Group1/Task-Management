@@ -12,12 +12,12 @@ import (
 func main() {
 	cfg := readConfig()
 
-	app, err := app.NewAppContainer(cfg)
+	appContainer, err := app.NewAppContainer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	http_server.Run(cfg.Server, app)
+	http_server.Run(cfg.Server, appContainer)
 }
 
 func readConfig() config.Config {
@@ -32,11 +32,7 @@ func readConfig() config.Config {
 		log.Fatal("configuration file not found")
 	}
 
-	cfg, err := config.ReadStandard(configPath)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	cfg := config.MustReadStandard(configPath)
 
 	return cfg
 }

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	user_model "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	user_repo "github.com/GoBootCamp-Group1/Task-Management/internal/core/port/user"
+	user_repo "github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"time"
 
@@ -11,13 +11,13 @@ import (
 )
 
 type AuthService struct {
-	userRepo               *user_repo.Repo
+	userRepo               *user_repo.UserRepo
 	secret                 []byte
 	tokenExpiration        uint
 	refreshTokenExpiration uint
 }
 
-func NewAuthService(userRepo user_repo.Repo, secret []byte,
+func NewAuthService(userRepo user_repo.UserRepo, secret []byte,
 	tokenExpiration uint, refreshTokenExpiration uint) *AuthService {
 	return &AuthService{
 		userRepo:               &userRepo,

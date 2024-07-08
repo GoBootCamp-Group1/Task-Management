@@ -6,7 +6,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	user_port "github.com/GoBootCamp-Group1/Task-Management/internal/core/port/user"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +14,7 @@ type userRepo struct {
 	db *gorm.DB
 }
 
-func NewUserRepo(db *gorm.DB) user_port.Repo {
+func NewUserRepo(db *gorm.DB) port.UserRepo {
 	return &userRepo{
 		db: db,
 	}
