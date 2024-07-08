@@ -5,20 +5,28 @@ import (
 	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
-	"time"
-
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
+	"time"
 )
 
 func SignUpUser(userService *service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		validate := validation.NewValidator()
+
 		var input struct {
-			Email    string `json:"email"`
-			Name     string `json:"name"`
-			Password string `json:"password"`
+			Email    string `json:"email" validate:"required,email,excludesall=;"`
+			Name     string `json:"name" validate:"required,min=3,max=20,excludesall=;"`
+			Password string `json:"password" validate:"required,min=8,excludesall=;,password"`
 		}
 
 		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		err := validate.Struct(input)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
@@ -28,7 +36,7 @@ func SignUpUser(userService *service.UserService) fiber.Handler {
 			Password: input.Password,
 		}
 
-		err := userService.CreateUser(c.Context(), &userModel)
+		err = userService.CreateUser(c.Context(), &userModel)
 		if err != nil {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
@@ -38,10 +46,12 @@ func SignUpUser(userService *service.UserService) fiber.Handler {
 }
 
 func LoginUser(authService *service.AuthService) fiber.Handler {
+	validate := validation.NewValidator()
+
 	return func(c *fiber.Ctx) error {
 		var input struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
+			Email    string `json:"email" validate:"required,email,excludesall=;"`
+			Password string `json:"password" validate:"required,min=8,excludesall=;,password"`
 		}
 
 		c.Cookie(&fiber.Cookie{
@@ -52,6 +62,12 @@ func LoginUser(authService *service.AuthService) fiber.Handler {
 		})
 
 		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		err := validate.Struct(input)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
