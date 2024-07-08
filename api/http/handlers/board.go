@@ -1,21 +1,44 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )
 
+type CreateBoardRequest struct {
+	Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;" example:"new board"`
+	IsPrivate bool   `json:"is_private" example:"false"`
+}
+
+// CreateBoard creates a new board
+// @Summary Create Board
+// @Description creates a board
+// @Tags Create Board
+// @Accept  json
+// @Produce json
+// @Param   body  body      CreateBoardRequest  true  "Create Board"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards [post]
+// @Security ApiKeyAuth
 func CreateBoard(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var input struct {
-			Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;"`
-			IsPrivate bool   `json:"is_private"`
-		}
+		validate := validation.NewValidator()
+		var input CreateBoardRequest
 
 		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		err := validate.Struct(input)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
@@ -25,7 +48,7 @@ func CreateBoard(boardService *service.BoardService) fiber.Handler {
 			IsPrivate: input.IsPrivate,
 		}
 
-		err := boardService.CreateBoard(c.Context(), &boardModel)
+		err = boardService.CreateBoard(c.Context(), &boardModel)
 		if err != nil {
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
@@ -34,6 +57,18 @@ func CreateBoard(boardService *service.BoardService) fiber.Handler {
 	}
 }
 
+// GetBoardByID get a board
+// @Summary Get Board
+// @Description gets a board
+// @Tags Get Board
+// @Produce json
+// @Param   id      path     string  true  "Board ID"
+// @Success 200 {object} domain.Board
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /boards/{id} [get]
+// @Security ApiKeyAuth
 func GetBoardByID(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
@@ -54,18 +89,40 @@ func GetBoardByID(boardService *service.BoardService) fiber.Handler {
 	}
 }
 
+type UpdateBoardRequest struct {
+	Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;" example:"new board"`
+	IsPrivate bool   `json:"is_private" example:"false"`
+}
+
+// UpdateBoard updates a new board
+// @Summary Update Board
+// @Description updates a board
+// @Tags Update Board
+// @Accept  json
+// @Produce json
+// @Param   id      path     string  true  "Board ID"
+// @Param   body  body      UpdateBoardRequest  true  "Update Board"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{id} [put]
+// @Security ApiKeyAuth
 func UpdateBoard(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		validate := validation.NewValidator()
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		var input struct {
-			Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;"`
-			IsPrivate bool   `json:"is_private"`
+		var input UpdateBoardRequest
+
+		if err = c.BodyParser(&input); err != nil {
+			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
-		if err := c.BodyParser(&input); err != nil {
+		err = validate.Struct(input)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
@@ -84,6 +141,17 @@ func UpdateBoard(boardService *service.BoardService) fiber.Handler {
 	}
 }
 
+// DeleteBoard delete a board
+// @Summary Delete Board
+// @Description deleted a board
+// @Tags Delete Board
+// @Produce json
+// @Param   id      path     string  true  "Board ID"
+// @Success 204
+// @Failure 400
+// @Failure 500
+// @Router /boards/{id} [delete]
+// @Security ApiKeyAuth
 func DeleteBoard(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)

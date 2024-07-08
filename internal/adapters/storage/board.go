@@ -57,8 +57,22 @@ func (r *boardRepo) GetByID(ctx context.Context, id uint) (*domain.Board, error)
 }
 
 func (r *boardRepo) Update(ctx context.Context, board *domain.Board) error {
-	entity := mappers.DomainToBoardEntity(board)
-	return r.db.WithContext(ctx).Save(&entity).Error
+	var existingBoard *entities.Board
+	if err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", board.ID).First(&existingBoard).Error; err != nil {
+		return err
+	}
+
+	if existingBoard != nil {
+		if existingBoard.Name != board.Name {
+			existingBoard.Name = board.Name
+		}
+
+		if existingBoard.IsPrivate != board.IsPrivate {
+			existingBoard.IsPrivate = board.IsPrivate
+		}
+	}
+
+	return r.db.WithContext(ctx).Save(&existingBoard).Error
 }
 
 func (r *boardRepo) Delete(ctx context.Context, id uint) error {

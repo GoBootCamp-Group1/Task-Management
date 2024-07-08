@@ -11,9 +11,9 @@ import (
 )
 
 type SignUpInput struct {
-	Email    string `json:"email" validate:"required,email,excludesall=;"`
-	Name     string `json:"name" validate:"required,min=3,max=20,excludesall=;"`
-	Password string `json:"password" validate:"required,min=8,excludesall=;,password"`
+	Email    string `json:"email" validate:"required,email,excludesall=;" example:"test@example.com"`
+	Name     string `json:"name" validate:"required,min=3,max=20,excludesall=;" example:"test"`
+	Password string `json:"password" validate:"required,min=8,excludesall=;,password" example:"1234Test@"`
 }
 
 // SignUpUser handles the registration of a new user
@@ -59,8 +59,8 @@ func SignUpUser(userService *service.UserService) fiber.Handler {
 }
 
 type LoginInput struct {
-	Email    string `json:"email" validate:"required,email,excludesall=;"`
-	Password string `json:"password" validate:"required,min=8,excludesall=;,password"`
+	Email    string `json:"email" validate:"required,email,excludesall=;" example:"test1@test.com"`
+	Password string `json:"password" validate:"required,min=8,excludesall=;,password" example:"1234Test@"`
 }
 
 // LoginUser handles the login of a user

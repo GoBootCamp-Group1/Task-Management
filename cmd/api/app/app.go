@@ -27,6 +27,7 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 
 	app.setUserService()
 	app.setAuthService()
+	app.setBoardService()
 
 	return app, nil
 }

@@ -16,6 +16,12 @@ import (
 //	@contact.name	GoBootcamp-Group1
 //	@contact.url	https://github.com/GoBootCamp-Group1
 
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
+// @Security ApiKeyAuth
+
 // @host		localhost:8082
 // @BasePath	/api/v1
 func main() {
