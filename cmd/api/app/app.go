@@ -9,15 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type AppContainer struct {
+type Container struct {
 	cfg         config.Config
 	dbConn      *gorm.DB
 	userService *service.UserService
 	authService *service.AuthService
 }
 
-func NewAppContainer(cfg config.Config) (*AppContainer, error) {
-	app := &AppContainer{
+func NewAppContainer(cfg config.Config) (*Container, error) {
+	app := &Container{
 		cfg: cfg,
 	}
 
@@ -30,26 +30,26 @@ func NewAppContainer(cfg config.Config) (*AppContainer, error) {
 	return app, nil
 }
 
-func (a *AppContainer) RawRBConnection() *gorm.DB {
+func (a *Container) RawRBConnection() *gorm.DB {
 	return a.dbConn
 }
 
-func (a *AppContainer) UserService() *service.UserService {
+func (a *Container) UserService() *service.UserService {
 	return a.userService
 }
 
-func (a *AppContainer) AuthService() *service.AuthService {
+func (a *Container) AuthService() *service.AuthService {
 	return a.authService
 }
 
-func (a *AppContainer) setUserService() {
+func (a *Container) setUserService() {
 	if a.userService != nil {
 		return
 	}
 	a.userService = service.NewUserService(storage2.NewUserRepo(a.dbConn))
 }
 
-func (a *AppContainer) mustInitDB() {
+func (a *Container) mustInitDB() {
 	if a.dbConn != nil {
 		return
 	}
@@ -62,7 +62,7 @@ func (a *AppContainer) mustInitDB() {
 	a.dbConn = db
 }
 
-func (a *AppContainer) setAuthService() {
+func (a *Container) setAuthService() {
 	if a.authService != nil {
 		return
 	}

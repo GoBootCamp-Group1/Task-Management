@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 	user_model "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port/user"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
 )
 
 type UserService struct {
-	repo user.Repo
+	repo port.UserRepo
 }
 
-func NewUserService(repo user.Repo) *UserService {
+func NewUserService(repo port.UserRepo) *UserService {
 	return &UserService{
 		repo: repo,
 	}
