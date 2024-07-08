@@ -2,16 +2,18 @@ package app
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
-	storage2 "github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
-	"log"
-
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"log"
 )
 
 type Container struct {
 	cfg          config.Config
 	dbConn       *gorm.DB
+	cacheClient  *redis.Client
 	userService  *service.UserService
 	authService  *service.AuthService
 	boardService *service.BoardService
@@ -22,8 +24,9 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 		cfg: cfg,
 	}
 
+	app.mustInitCache()
 	app.mustInitDB()
-	storage2.Migrate(app.dbConn)
+	storage.Migrate(app.dbConn)
 
 	app.setUserService()
 	app.setAuthService()
@@ -51,7 +54,7 @@ func (a *Container) setUserService() {
 	if a.userService != nil {
 		return
 	}
-	a.userService = service.NewUserService(storage2.NewUserRepo(a.dbConn))
+	a.userService = service.NewUserService(storage.NewUserRepo(a.dbConn))
 }
 
 func (a *Container) mustInitDB() {
@@ -59,7 +62,7 @@ func (a *Container) mustInitDB() {
 		return
 	}
 
-	db, err := storage2.NewPostgresGormConnection(a.cfg.DB)
+	db, err := storage.NewPostgresGormConnection(a.cfg.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,12 +70,25 @@ func (a *Container) mustInitDB() {
 	a.dbConn = db
 }
 
+func (a *Container) mustInitCache() {
+	if a.cacheClient != nil {
+		return
+	}
+
+	redisClient, err := cache.NewRedisConnection(a.cfg.Redis)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	a.cacheClient = redisClient
+}
+
 func (a *Container) setAuthService() {
 	if a.authService != nil {
 		return
 	}
 
-	a.authService = service.NewAuthService(storage2.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
+	a.authService = service.NewAuthService(storage.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
 		a.cfg.Server.TokenExpMinutes,
 		a.cfg.Server.RefreshTokenExpMinutes)
 }
@@ -81,5 +97,5 @@ func (a *Container) setBoardService() {
 	if a.boardService != nil {
 		return
 	}
-	a.boardService = service.NewBoardService(storage2.NewBoardRepo(a.dbConn))
+	a.boardService = service.NewBoardService(storage.NewBoardRepo(a.dbConn))
 }
