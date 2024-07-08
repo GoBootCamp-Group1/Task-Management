@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
-	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
@@ -42,8 +42,13 @@ func CreateBoard(boardService *service.BoardService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
 		boardModel := domain.Board{
-			CreatedBy: c.Locals(jwt.UserClaimKey).(*jwt.UserClaims).UserID,
+			CreatedBy: userId,
 			Name:      input.Name,
 			IsPrivate: input.IsPrivate,
 		}
