@@ -11,7 +11,7 @@ import (
 func CreateBoard(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var input struct {
-			Name      string `json:"name"`
+			Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;"`
 			IsPrivate bool   `json:"is_private"`
 		}
 
@@ -61,7 +61,7 @@ func UpdateBoard(boardService *service.BoardService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 		var input struct {
-			Name      string `json:"name"`
+			Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;"`
 			IsPrivate bool   `json:"is_private"`
 		}
 
