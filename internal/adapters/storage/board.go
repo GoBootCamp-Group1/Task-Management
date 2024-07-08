@@ -62,15 +62,8 @@ func (r *boardRepo) Update(ctx context.Context, board *domain.Board) error {
 		return err
 	}
 
-	if existingBoard != nil {
-		if existingBoard.Name != board.Name {
-			existingBoard.Name = board.Name
-		}
-
-		if existingBoard.IsPrivate != board.IsPrivate {
-			existingBoard.IsPrivate = board.IsPrivate
-		}
-	}
+	existingBoard.Name = board.Name
+	existingBoard.IsPrivate = board.IsPrivate
 
 	return r.db.WithContext(ctx).Save(&existingBoard).Error
 }
