@@ -1,12 +1,11 @@
 package entities
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type Board struct {
-	ID        uint `gorm:"primaryKey"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
+	gorm.Model
 	CreatedBy uint
 	Name      string
 	IsPrivate bool

@@ -7,8 +7,8 @@ import (
 )
 
 func InitBoardRoutes(router *fiber.Router, app *app.Container) {
-	(*router).Post("/board", handlers.CreateBoard(app.BoardService()))
-	(*router).Put("/board/:id", handlers.UpdateBoard(app.BoardService()))
-	(*router).Get("/board/:id", handlers.GetBoardByID(app.BoardService()))
-	(*router).Delete("/board/:id", handlers.DeleteBoard(app.BoardService()))
+	(*router).Post("/boards", handlers.CreateBoard(app.BoardService()))
+	(*router).Put("/boards/:id", handlers.UpdateBoard(app.BoardService()))
+	(*router).Get("/boards/:id", handlers.GetBoardByID(app.BoardService()))
+	(*router).Delete("/boards/:id", handlers.DeleteBoard(app.BoardService()))
 }

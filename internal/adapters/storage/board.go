@@ -20,9 +20,22 @@ func NewBoardRepo(db *gorm.DB) port.BoardRepo {
 	}
 }
 
+var (
+	ErrBoardAlreadyExists = errors.New("board already exists")
+)
+
 func (r *boardRepo) Create(ctx context.Context, board *domain.Board) error {
+	var existingBoard entities.Board
+	err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("name = ? AND created_by = ?", board.Name, board.CreatedBy).First(&existingBoard).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if existingBoard.ID != 0 {
+		return ErrBoardAlreadyExists
+	}
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToBoardEntity(board)
+
 		if err := tx.WithContext(ctx).Create(&entity).Error; err != nil {
 			return err
 		}

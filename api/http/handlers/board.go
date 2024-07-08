@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )
@@ -10,7 +11,6 @@ import (
 func CreateBoard(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var input struct {
-			CreatedBy uint   `json:"created_by"`
 			Name      string `json:"name"`
 			IsPrivate bool   `json:"is_private"`
 		}
@@ -20,7 +20,7 @@ func CreateBoard(boardService *service.BoardService) fiber.Handler {
 		}
 
 		boardModel := domain.Board{
-			CreatedBy: input.CreatedBy,
+			CreatedBy: c.Locals(jwt.UserClaimKey).(*jwt.UserClaims).UserID,
 			Name:      input.Name,
 			IsPrivate: input.IsPrivate,
 		}
@@ -56,8 +56,11 @@ func GetBoardByID(boardService *service.BoardService) fiber.Handler {
 
 func UpdateBoard(boardService *service.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+		if err != nil {
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
 		var input struct {
-			ID        uint   `json:"id"`
 			Name      string `json:"name"`
 			IsPrivate bool   `json:"is_private"`
 		}
@@ -67,12 +70,12 @@ func UpdateBoard(boardService *service.BoardService) fiber.Handler {
 		}
 
 		boardModel := domain.Board{
-			ID:        input.ID,
+			ID:        uint(id),
 			Name:      input.Name,
 			IsPrivate: input.IsPrivate,
 		}
 
-		err := boardService.UpdateBoard(c.Context(), &boardModel)
+		err = boardService.UpdateBoard(c.Context(), &boardModel)
 		if err != nil {
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
