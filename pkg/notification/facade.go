@@ -2,7 +2,6 @@ package notification
 
 import (
 	"errors"
-	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/notification/push"
 	"sync"
 )
@@ -13,7 +12,7 @@ const PUSH_NOTIFIER = "push"
 const SMS_NOTIFIER = "sms"
 
 type Notifier struct {
-	InApp *DatabaseNotifierConf
+	InApp *DatabaseNotifierConfInternal
 	Email *EmailNotifierConf
 	Push  push.IPusher
 	SMS   *SMSNotifierConf
@@ -27,11 +26,11 @@ var (
 // NotifierConf General use for all configs
 type NotifierConf any
 
-func NewNotifier(cfg config.Config, notifiersConf map[string]NotifierConf) (*Notifier, error) {
+func NewNotifier(notifiersConf map[string]NotifierConf) (*Notifier, error) {
 	var err error
 
 	once.Do(func() {
-		var databaseNotifier *DatabaseNotifierConf
+		var databaseNotifier *DatabaseNotifierConfInternal
 		var emailNotifier *EmailNotifierConf
 		var pushNotifier push.IPusher
 		var smsNotifier *SMSNotifierConf
@@ -39,7 +38,7 @@ func NewNotifier(cfg config.Config, notifiersConf map[string]NotifierConf) (*Not
 		if hasConfig(notifiersConf, DB_NOTIFIER) {
 			dbNotifyCfg, ok := notifiersConf[DB_NOTIFIER].(*DatabaseNotifierConf)
 			if !ok {
-				err = errors.New("invalid configuration for dbNotif notifier")
+				err = errors.New("invalid configuration for database notifier")
 				return
 			}
 			databaseNotifier, err = NewDatabaseNotifier(dbNotifyCfg)

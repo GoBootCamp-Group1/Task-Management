@@ -96,6 +96,12 @@ func (a *Container) initNotifier() {
 	//needed services
 	notifiersConf := make(map[string]notification.NotifierConf)
 
+	//init database conf
+	notifiersConf["database"] = &notification.DatabaseNotifierConf{
+		TableName: "notifications",
+		Db:        a.dbConn,
+	}
+
 	//init email conf
 	notifiersConf["email"] = &notification.EmailNotifierConf{
 		SmtpHost:        a.cfg.Email.SmtpHost,
@@ -107,7 +113,7 @@ func (a *Container) initNotifier() {
 		SmtpFromName:    a.cfg.Email.SmtpFromName,
 	}
 
-	notifier, err := notification.NewNotifier(a.cfg, notifiersConf)
+	notifier, err := notification.NewNotifier(notifiersConf)
 	if err != nil {
 		log.Fatal(err)
 	}

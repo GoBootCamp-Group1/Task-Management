@@ -1,6 +1,6 @@
 package notification
 
-type InAppNotificationInput struct {
+type InAppInput struct {
 	Type string
 	Data string
 }
