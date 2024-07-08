@@ -18,6 +18,7 @@ func Run(cfg config.Server, app *app.Container) {
 
 	// register global routes
 	route.InitAuthRoutes(&api, app)
+	route.InitBoardRoutes(&api, app, cfg)
 
 	// run server
 	log.Fatal(fiberApp.Listen(fmt.Sprintf("%s:%d", cfg.Host, cfg.HttpPort)))

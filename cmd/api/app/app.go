@@ -45,6 +45,10 @@ func (a *Container) AuthService() *service.AuthService {
 	return a.authService
 }
 
+func (a *Container) BoardService() *service.BoardService {
+	return a.boardService
+}
+
 func (a *Container) setUserService() {
 	if a.userService != nil {
 		return
@@ -83,7 +87,14 @@ func (a *Container) setAuthService() {
 		return
 	}
 
-	a.authService = service.NewAuthService(storage.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
+	a.authService = service.NewAuthService(storage2.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
 		a.cfg.Server.TokenExpMinutes,
 		a.cfg.Server.RefreshTokenExpMinutes)
+}
+
+func (a *Container) setBoardService() {
+	if a.boardService != nil {
+		return
+	}
+	a.boardService = service.NewBoardService(storage2.NewBoardRepo(a.dbConn))
 }
