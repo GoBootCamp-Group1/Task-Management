@@ -10,10 +10,11 @@ import (
 )
 
 type Container struct {
-	cfg         config.Config
-	dbConn      *gorm.DB
-	userService *service.UserService
-	authService *service.AuthService
+	cfg          config.Config
+	dbConn       *gorm.DB
+	userService  *service.UserService
+	authService  *service.AuthService
+	boardService *service.BoardService
 }
 
 func NewAppContainer(cfg config.Config) (*Container, error) {
@@ -40,6 +41,10 @@ func (a *Container) UserService() *service.UserService {
 
 func (a *Container) AuthService() *service.AuthService {
 	return a.authService
+}
+
+func (a *Container) BoardService() *service.BoardService {
+	return a.boardService
 }
 
 func (a *Container) setUserService() {
@@ -70,4 +75,11 @@ func (a *Container) setAuthService() {
 	a.authService = service.NewAuthService(storage2.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
 		a.cfg.Server.TokenExpMinutes,
 		a.cfg.Server.RefreshTokenExpMinutes)
+}
+
+func (a *Container) setBoardService() {
+	if a.boardService != nil {
+		return
+	}
+	a.boardService = service.NewBoardService(storage2.NewBoardRepo(a.dbConn))
 }
