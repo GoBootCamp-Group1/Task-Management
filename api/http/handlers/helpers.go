@@ -19,7 +19,7 @@ var (
 type ServiceFactory[T any] func(context.Context) T
 
 func SendSuccessResponse(c *fiber.Ctx, entity string) error {
-	return c.Status(fiber.StatusCreated).JSON(map[string]any{
+	return c.Status(fiber.StatusOK).JSON(map[string]any{
 		"message": fmt.Sprintf("%s created successfully", entity),
 	})
 }
@@ -37,7 +37,7 @@ func SendError(c *fiber.Ctx, err error, status int) error {
 }
 
 func SendUserToken(c *fiber.Ctx, authToken *service.UserToken) error {
-	return c.JSON(map[string]any{
+	return c.Status(fiber.StatusOK).JSON(map[string]any{
 		"auth":    authToken.AuthorizationToken,
 		"refresh": authToken.RefreshToken,
 		"exp":     authToken.ExpiresAt,
