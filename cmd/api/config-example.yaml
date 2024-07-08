@@ -14,3 +14,11 @@ redis:
   address: "localhost:6379"
   password: ""
   db: 0
+email:
+  smtp_host: "mail.email.com"
+  smtp_port: 587
+  smtp_username: "noreply@email.com"
+  smtp_password: "secret"
+  smtp_from_address: "noreply@email.com"
+  smtp_encryption: "tls"
+  smtp_from_name: "noreply@email.com"
