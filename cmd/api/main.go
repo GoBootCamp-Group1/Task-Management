@@ -9,6 +9,15 @@ import (
 	"path/filepath"
 )
 
+//	@title			Task Manager
+//	@version		1.0
+//	@description	This is a task management application.
+
+//	@contact.name	GoBootcamp-Group1
+//	@contact.url	https://github.com/GoBootCamp-Group1
+
+// @host		localhost:8082
+// @BasePath	/api/v1
 func main() {
 	cfg := readConfig()
 

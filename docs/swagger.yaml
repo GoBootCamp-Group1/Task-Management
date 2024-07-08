@@ -1,0 +1,87 @@
+basePath: /api/v1
+definitions:
+  handlers.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.SignUpInput:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 3
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+host: localhost:8082
+info:
+  contact:
+    name: GoBootcamp-Group1
+    url: https://github.com/GoBootCamp-Group1
+  description: This is a task management application.
+  title: Task Manager
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: login user with email and password
+      parameters:
+      - description: User Login
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: User login
+      tags:
+      - Login
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a user with email, name and password
+      parameters:
+      - description: User Registration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SignUpInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: User registration
+      tags:
+      - SignUp
+swagger: "2.0"

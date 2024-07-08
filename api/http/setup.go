@@ -8,11 +8,13 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	_ "github.com/GoBootCamp-Group1/Task-Management/docs"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"log"
 )
 
 func Run(cfg config.Server, app *app.Container) {
 	fiberApp := fiber.New()
+	fiberApp.Get("/swagger/*", swagger.HandlerDefault)
 
 	api := fiberApp.Group("/api/v1", middlerwares.SetUserContext())
 
