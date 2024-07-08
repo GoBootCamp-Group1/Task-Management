@@ -2,14 +2,13 @@ package domain
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 )
 
 var (
-	ErrUserNotFound    = errors.New("User not found")
-	ErrInvalidPassword = errors.New("Invalid user password")
+	ErrUserNotFound    = errors.New("user not found")
+	ErrInvalidPassword = errors.New("invalid user password")
 )
 
 type UserRole uint8
@@ -47,10 +46,4 @@ func (u *User) PasswordIsValid(pass string) bool {
 	h.Write([]byte(pass))
 	passSha256 := h.Sum(nil)
 	return fmt.Sprintf("%x", passSha256) == u.Password
-}
-
-func HashPassword(password string) string {
-	h := sha256.New()
-	h.Write([]byte(password))
-	return hex.EncodeToString(h.Sum(nil))
 }

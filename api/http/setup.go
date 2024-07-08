@@ -11,7 +11,7 @@ import (
 	"log"
 )
 
-func Run(cfg config.Server, app *app.AppContainer) {
+func Run(cfg config.Server, app *app.Container) {
 	fiberApp := fiber.New()
 
 	api := fiberApp.Group("/api/v1", middlerwares.SetUserContext())

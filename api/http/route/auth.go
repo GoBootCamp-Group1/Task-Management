@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func InitAuthRoutes(router *fiber.Router, app *app.AppContainer) {
+func InitAuthRoutes(router *fiber.Router, app *app.Container) {
 	(*router).Post("/signup", handlers.SignUpUser(app.UserService()))
 	(*router).Post("/login", handlers.LoginUser(app.AuthService()))
 	(*router).Get("/refresh", handlers.RefreshCreds(app.AuthService()))

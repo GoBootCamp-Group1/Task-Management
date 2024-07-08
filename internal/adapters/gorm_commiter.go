@@ -6,33 +6,33 @@ import (
 	"gorm.io/gorm"
 )
 
-type GormCommiter struct {
+type GormCommitter struct {
 	db *gorm.DB
 	tx *gorm.DB
 }
 
-func NewGormCommiter(db *gorm.DB) valuecontext.Committer {
-	return &GormCommiter{db: db}
+func NewGormCommitter(db *gorm.DB) valuecontext.Committer {
+	return &GormCommitter{db: db}
 }
 
-func (c *GormCommiter) Tx() any {
+func (c *GormCommitter) Tx() any {
 	return c.tx
 }
 
-func (c *GormCommiter) Begin() valuecontext.Committer {
+func (c *GormCommitter) Begin() valuecontext.Committer {
 	tx := c.db.Begin()
 	c.tx = tx
 	return c
 }
 
-func (c *GormCommiter) Commit() error {
+func (c *GormCommitter) Commit() error {
 	if c.tx == nil {
 		return nil
 	}
 	return c.tx.Commit().Error
 }
 
-func (c *GormCommiter) Rollback() error {
+func (c *GormCommitter) Rollback() error {
 	if c.tx == nil {
 		return nil
 	}

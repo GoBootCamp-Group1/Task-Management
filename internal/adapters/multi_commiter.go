@@ -4,13 +4,13 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/valuecontext"
 )
 
-type multiCommiter struct {
+type multiCommitter struct {
 	committers []valuecontext.Committer
 	txs        []valuecontext.Committer
 }
 
-func NewMultiCommiter(committers []valuecontext.Committer) *multiCommiter {
-	mc := &multiCommiter{
+func NewMultiCommitter(committers []valuecontext.Committer) *multiCommitter {
+	mc := &multiCommitter{
 		committers: committers,
 	}
 
@@ -20,7 +20,7 @@ func NewMultiCommiter(committers []valuecontext.Committer) *multiCommiter {
 	return mc
 }
 
-func (c *multiCommiter) Begin() valuecontext.Committer {
+func (c *multiCommitter) Begin() valuecontext.Committer {
 	for i, cm := range c.committers {
 		c.txs[i] = cm.Begin()
 	}
@@ -28,20 +28,26 @@ func (c *multiCommiter) Begin() valuecontext.Committer {
 	return c
 }
 
-func (c *multiCommiter) Commit() error {
+func (c *multiCommitter) Commit() error {
 	for _, tx := range c.txs {
-		tx.Commit()
+		err := tx.Commit()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (c *multiCommiter) Rollback() error {
+func (c *multiCommitter) Rollback() error {
 	for _, tx := range c.txs {
-		tx.Rollback()
+		err := tx.Rollback()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (c *multiCommiter) Tx() any {
-	return c.txs // order matters
+func (c *multiCommitter) Tx() any {
+	return c.txs
 }

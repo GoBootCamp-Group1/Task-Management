@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/config"
-	entities2 "github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,5 +16,9 @@ func NewPostgresGormConnection(dbConfig config.DB) (*gorm.DB, error) {
 func Migrate(db *gorm.DB) {
 	migrator := db.Migrator()
 
-	migrator.AutoMigrate(&entities2.User{})
+	err := migrator.AutoMigrate(&entities.User{})
+	if err != nil {
+		panic("migration failed")
+		return
+	}
 }
