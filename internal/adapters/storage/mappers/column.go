@@ -13,7 +13,7 @@ func DomainToColumnEntity(column *domain.Column) *entities.Column {
 		Name:          column.Name,
 		IsFinal:       column.IsFinal,
 		OrderPosition: column.OrderPosition,
-		BoardId:       column.BoardID,
+		BoardID:       column.BoardID,
 	}
 }
 
@@ -24,6 +24,6 @@ func ColumnEntityToDomain(entity *entities.Column) *domain.Column {
 		Name:          entity.Name,
 		IsFinal:       entity.IsFinal,
 		OrderPosition: entity.OrderPosition,
-		BoardID:       entity.BoardId,
+		BoardID:       entity.BoardID,
 	}
 }

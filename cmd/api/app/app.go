@@ -1,22 +1,24 @@
 package app
 
 import (
+	"log"
+
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"log"
 )
 
 type Container struct {
-	cfg          config.Config
-	dbConn       *gorm.DB
-	cacheClient  *redis.Client
-	userService  *service.UserService
-	authService  *service.AuthService
-	boardService *service.BoardService
+	cfg           config.Config
+	dbConn        *gorm.DB
+	cacheClient   *redis.Client
+	userService   *service.UserService
+	authService   *service.AuthService
+	boardService  *service.BoardService
+	columnService *service.ColumnService
 }
 
 func NewAppContainer(cfg config.Config) (*Container, error) {
@@ -31,6 +33,7 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.setUserService()
 	app.setAuthService()
 	app.setBoardService()
+	app.setColumnService()
 
 	return app, nil
 }
@@ -49,6 +52,10 @@ func (a *Container) AuthService() *service.AuthService {
 
 func (a *Container) BoardService() *service.BoardService {
 	return a.boardService
+}
+
+func (a *Container) ColumnService() *service.ColumnService {
+	return a.columnService
 }
 
 func (a *Container) setUserService() {
@@ -99,4 +106,11 @@ func (a *Container) setBoardService() {
 		return
 	}
 	a.boardService = service.NewBoardService(storage.NewBoardRepo(a.dbConn))
+}
+
+func (a *Container) setColumnService() {
+	if a.columnService != nil {
+		return
+	}
+	a.columnService = service.NewColumnService(storage.NewColumnRepo(a.dbConn))
 }

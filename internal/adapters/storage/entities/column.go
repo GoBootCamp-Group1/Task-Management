@@ -4,9 +4,9 @@ import "gorm.io/gorm"
 
 type Column struct {
 	gorm.Model
-	BoardId       uint
+	BoardID       uint
 	Name          string
-	OrderPosition uint
+	OrderPosition int
 	IsFinal       bool
 	CreatedBy     uint
 }
