@@ -2,11 +2,11 @@ package mappers
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"gorm.io/gorm"
 )
 
-func DomainToColumnEntity(column *domain.Column) *entities.Column {
+func DomainToColumnEntity(column *domains.Column) *entities.Column {
 	return &entities.Column{
 		Model:         gorm.Model{ID: column.ID},
 		CreatedBy:     column.CreatedBy,
@@ -17,8 +17,8 @@ func DomainToColumnEntity(column *domain.Column) *entities.Column {
 	}
 }
 
-func ColumnEntityToDomain(entity *entities.Column) *domain.Column {
-	return &domain.Column{
+func ColumnEntityToDomain(entity *entities.Column) *domains.Column {
+	return &domains.Column{
 		ID:            entity.ID,
 		CreatedBy:     entity.CreatedBy,
 		Name:          entity.Name,

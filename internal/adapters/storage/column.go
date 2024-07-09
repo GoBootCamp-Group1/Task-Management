@@ -6,8 +6,8 @@ import (
 
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"gorm.io/gorm"
 )
 
@@ -19,13 +19,13 @@ var (
 	ErrColumnAlreadyExists = errors.New("column already exists")
 )
 
-func NewColumnRepo(db *gorm.DB) port.ColumnRepo {
+func NewColumnRepo(db *gorm.DB) ports.ColumnRepo {
 	return &columnRepo{
 		db: db,
 	}
 }
 
-func (r *columnRepo) Create(ctx context.Context, column *domain.Column) error {
+func (r *columnRepo) Create(ctx context.Context, column *domains.Column) error {
 	var existingColumn entities.Column
 	var lastColumn entities.Column
 	var lastPosition int = 1
@@ -61,7 +61,7 @@ func (r *columnRepo) Create(ctx context.Context, column *domain.Column) error {
 
 }
 
-func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domain.Column, error) {
+func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, error) {
 	var column entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: id}}).First(&column).Error
 	if err != nil {
@@ -74,7 +74,7 @@ func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domain.Column, erro
 	return mappers.ColumnEntityToDomain(&column), nil
 }
 
-func (r *columnRepo) GetAll(ctx context.Context, boardId uint) ([]*domain.Column, error) {
+func (r *columnRepo) GetAll(ctx context.Context, boardId uint) ([]*domains.Column, error) {
 	var entitieColumns []entities.Column
 
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC").Find(&entitieColumns).Error
@@ -82,7 +82,7 @@ func (r *columnRepo) GetAll(ctx context.Context, boardId uint) ([]*domain.Column
 		return nil, err
 	}
 
-	columns := make([]*domain.Column, len(entitieColumns))
+	columns := make([]*domains.Column, len(entitieColumns))
 	for i, c := range entitieColumns {
 		columns[i] = mappers.ColumnEntityToDomain(&c)
 	}
@@ -91,7 +91,7 @@ func (r *columnRepo) GetAll(ctx context.Context, boardId uint) ([]*domain.Column
 }
 
 // only name can update
-func (r *columnRepo) Update(ctx context.Context, updateColumn *domain.ColumnUpdate) error {
+func (r *columnRepo) Update(ctx context.Context, updateColumn *domains.ColumnUpdate) error {
 	var foundColumn *entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: updateColumn.ID}}).First(&foundColumn).Error
 	if err != nil {
@@ -103,7 +103,7 @@ func (r *columnRepo) Update(ctx context.Context, updateColumn *domain.ColumnUpda
 	return r.db.WithContext(ctx).Save(&foundColumn).Error
 }
 
-func (r *columnRepo) Move(ctx context.Context, moveColumn *domain.ColumnMove) error {
+func (r *columnRepo) Move(ctx context.Context, moveColumn *domains.ColumnMove) error {
 	var foundColumn *entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: moveColumn.ID}}).First(&foundColumn).Error
 	if err != nil {

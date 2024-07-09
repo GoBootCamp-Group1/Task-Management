@@ -12,14 +12,14 @@ import (
 )
 
 type Container struct {
-	cfg          config.Config
-	dbConn       *gorm.DB
-	cacheClient  *redis.Client
-	notifier     *notification.Notifier
-	userService  *services.UserService
-	authService  *services.AuthService
-	boardService *services.BoardService
-	taskService  *services.TaskService
+	cfg           config.Config
+	dbConn        *gorm.DB
+	cacheClient   *redis.Client
+	notifier      *notification.Notifier
+	userService   *services.UserService
+	authService   *services.AuthService
+	boardService  *services.BoardService
+	taskService   *services.TaskService
 	columnService *services.ColumnService
 }
 
@@ -62,7 +62,7 @@ func (a *Container) TaskService() *services.TaskService {
 	return a.taskService
 }
 
-func (a *Container) ColumnService() *service.ColumnService {
+func (a *Container) ColumnService() *services.ColumnService {
 	return a.columnService
 }
 
@@ -160,5 +160,5 @@ func (a *Container) setColumnService() {
 	if a.columnService != nil {
 		return
 	}
-	a.columnService = service.NewColumnService(storage.NewColumnRepo(a.dbConn))
+	a.columnService = services.NewColumnService(storage.NewColumnRepo(a.dbConn))
 }

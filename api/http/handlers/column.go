@@ -2,9 +2,8 @@ package handlers
 
 import (
 	"fmt"
-
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +26,7 @@ type CreateColumnRequest struct {
 // @Failure 500
 // @Router /columns/{boardId} [post]
 // @Security ApiKeyAuth
-func CreateColumn(columnService *service.ColumnService) fiber.Handler {
+func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		boardId, errParam := c.ParamsInt("boardId")
 		if errParam != nil {
@@ -51,7 +50,7 @@ func CreateColumn(columnService *service.ColumnService) fiber.Handler {
 			return SendError(c, err, 0)
 		}
 
-		columnModel := domain.Column{
+		columnModel := domains.Column{
 			CreatedBy: userId,
 			Name:      input.Name,
 			IsFinal:   input.IsFinal,
@@ -79,7 +78,7 @@ func CreateColumn(columnService *service.ColumnService) fiber.Handler {
 // @Failure 500
 // @Router /columns/{id} [get]
 // @Security ApiKeyAuth
-func GetColumnByID(columnService *service.ColumnService) fiber.Handler {
+func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
 		if errParam != nil {
@@ -99,7 +98,7 @@ func GetColumnByID(columnService *service.ColumnService) fiber.Handler {
 	}
 }
 
-func GetAllColumns(columnService *service.ColumnService) fiber.Handler {
+func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		boardId, errParam := c.ParamsInt("boardId")
 		if errParam != nil {
@@ -115,7 +114,7 @@ func GetAllColumns(columnService *service.ColumnService) fiber.Handler {
 	}
 }
 
-func UpdateColumn(columnService *service.ColumnService) fiber.Handler {
+func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
 		id, errParam := c.ParamsInt("id")
@@ -123,7 +122,7 @@ func UpdateColumn(columnService *service.ColumnService) fiber.Handler {
 			return SendError(c, errParam, fiber.StatusBadRequest)
 		}
 
-		var input domain.ColumnUpdate
+		var input domains.ColumnUpdate
 
 		if err := c.BodyParser(&input); err != nil {
 			return SendError(c, err, fiber.StatusBadRequest)
@@ -144,7 +143,7 @@ func UpdateColumn(columnService *service.ColumnService) fiber.Handler {
 	}
 }
 
-func MoveColumn(columnService *service.ColumnService) fiber.Handler {
+func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
 		id, errParam := c.ParamsInt("id")
@@ -152,7 +151,7 @@ func MoveColumn(columnService *service.ColumnService) fiber.Handler {
 			return SendError(c, errParam, fiber.StatusBadRequest)
 		}
 
-		var input domain.ColumnMove
+		var input domains.ColumnMove
 
 		if err := c.BodyParser(&input); err != nil {
 			return SendError(c, err, fiber.StatusBadRequest)
@@ -173,7 +172,7 @@ func MoveColumn(columnService *service.ColumnService) fiber.Handler {
 	}
 }
 
-func ChangeFinalColumn(columnService *service.ColumnService) fiber.Handler {
+func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
 		if errParam != nil {
@@ -188,7 +187,7 @@ func ChangeFinalColumn(columnService *service.ColumnService) fiber.Handler {
 	}
 }
 
-func DeleteColumn(columnService *service.ColumnService) fiber.Handler {
+func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
 		if errParam != nil {
