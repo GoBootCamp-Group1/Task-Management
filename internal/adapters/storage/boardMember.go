@@ -70,3 +70,20 @@ func (r *boardMemberRepo) Update(ctx context.Context, member *domain.BoardMember
 func (r *boardMemberRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entities.BoardMember{}, id).Error
 }
+
+func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]*domain.BoardMember, error) {
+	var boardMemberEntities []entities.BoardMember
+	err := r.db.WithContext(ctx).Where("board_id = ?", boardID).Find(&boardMemberEntities).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var boardMembers []*domain.BoardMember
+	for _, entity := range boardMemberEntities {
+		domainMember := mappers.BoardMemberEntityToDomain(&entity)
+		boardMembers = append(boardMembers, domainMember)
+	}
+
+	return boardMembers, nil
+
+}
