@@ -62,21 +62,23 @@ func (s *DatabaseNotifierConfInternal) Send(ctx context.Context, userID uint, in
 func (s *DatabaseNotifierConfInternal) Read(ctx context.Context, notificationID uint) error {
 	fmt.Printf("Reading Notification inside database for notification : %d ", notificationID)
 
-	findSQL := "SELECT * FROM ? WHERE id = ?"
-	err := s.db.WithContext(ctx).Raw(findSQL, s.TableName, notificationID).Error
+	sql := "UPDATE ? SET updated_at = NOW(), read_at = NOW() WHERE id = ?"
+	err := s.db.WithContext(ctx).Exec(sql, s.TableName, notificationID).Error
+
 	if err != nil {
 		return err
 	}
-
-	//if {
-	//	//TODO
-	//}
-
 	return nil
 }
 
 func (s *DatabaseNotifierConfInternal) Delete(ctx context.Context, notificationID uint) error {
 	fmt.Printf("Deleting Notification inside database for notification : %d ", notificationID)
+	sql := "UPDATE ? SET updated_at = NOW(), deleted_at = NOW() WHERE id = ?"
+	err := s.db.WithContext(ctx).Exec(sql, s.TableName, notificationID).Error
+
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
