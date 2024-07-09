@@ -4,7 +4,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/notification"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -16,9 +16,9 @@ type Container struct {
 	dbConn       *gorm.DB
 	cacheClient  *redis.Client
 	notifier     *notification.Notifier
-	userService  *service.UserService
-	authService  *service.AuthService
-	boardService *service.BoardService
+	userService  *services.UserService
+	authService  *services.AuthService
+	boardService *services.BoardService
 	taskService  *services.TaskService
 }
 

@@ -2,7 +2,8 @@ package mappers
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"gorm.io/gorm"
 )
 
 func DomainToBoardMemberEntity(member *domains.BoardMember) *entities.BoardMember {
