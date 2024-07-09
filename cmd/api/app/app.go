@@ -20,6 +20,7 @@ type Container struct {
 	authService  *services.AuthService
 	boardService *services.BoardService
 	taskService  *services.TaskService
+	columnService *services.ColumnService
 }
 
 func NewAppContainer(cfg config.Config) (*Container, error) {
@@ -36,7 +37,7 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.setUserService()
 	app.setAuthService()
 	app.setBoardService()
-	app.setTaskService()
+	app.setColumnService()
 
 	return app, nil
 }
@@ -59,6 +60,10 @@ func (a *Container) BoardService() *services.BoardService {
 
 func (a *Container) TaskService() *services.TaskService {
 	return a.taskService
+}
+
+func (a *Container) ColumnService() *service.ColumnService {
+	return a.columnService
 }
 
 func (a *Container) setUserService() {
@@ -149,4 +154,11 @@ func (a *Container) setTaskService() {
 		return
 	}
 	a.taskService = services.NewTaskService(storage.NewTaskRepo(a.dbConn))
+}
+
+func (a *Container) setColumnService() {
+	if a.columnService != nil {
+		return
+	}
+	a.columnService = service.NewColumnService(storage.NewColumnRepo(a.dbConn))
 }
