@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"gorm.io/gorm"
 )
 
@@ -14,13 +14,13 @@ type boardMemberRepo struct {
 	db *gorm.DB
 }
 
-func NewBoardMemberRepo(db *gorm.DB) port.BoardMemberRepo {
+func NewBoardMemberRepo(db *gorm.DB) ports.BoardMemberRepo {
 	return &boardMemberRepo{
 		db: db,
 	}
 }
 
-func (r *boardMemberRepo) Create(ctx context.Context, member *domain.BoardMember) error {
+func (r *boardMemberRepo) Create(ctx context.Context, member *domains.BoardMember) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToBoardMemberEntity(member)
 		if err := tx.WithContext(ctx).Create(&entity).Error; err != nil {
@@ -31,7 +31,7 @@ func (r *boardMemberRepo) Create(ctx context.Context, member *domain.BoardMember
 	})
 }
 
-func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domain.BoardMember, error) {
+func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domains.BoardMember, error) {
 	var m entities.BoardMember
 	err := r.db.WithContext(ctx).Model(&entities.BoardMember{}).Where("id = ?", id).First(&m).Error
 	if err != nil {
@@ -43,7 +43,7 @@ func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domain.BoardMe
 	return mappers.BoardMemberEntityToDomain(&m), nil
 }
 
-func (r *boardMemberRepo) Update(ctx context.Context, member *domain.BoardMember) error {
+func (r *boardMemberRepo) Update(ctx context.Context, member *domains.BoardMember) error {
 	entity := mappers.DomainToBoardMemberEntity(member)
 	return r.db.WithContext(ctx).Save(&entity).Error
 }

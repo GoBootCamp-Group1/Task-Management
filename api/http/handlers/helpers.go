@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/valuecontext"
 	"github.com/gofiber/fiber/v2"
 )
@@ -36,7 +37,7 @@ func SendError(c *fiber.Ctx, err error, status int) error {
 	})
 }
 
-func SendUserToken(c *fiber.Ctx, authToken *service.UserToken) error {
+func SendUserToken(c *fiber.Ctx, authToken *services.UserToken) error {
 	return c.Status(fiber.StatusOK).JSON(map[string]any{
 		"auth":    authToken.AuthorizationToken,
 		"refresh": authToken.RefreshToken,
@@ -55,4 +56,20 @@ func PageAndPageSize(c *fiber.Ctx) (int, int) {
 	}
 
 	return page, pageSize
+}
+
+func ValidateAndFill(c *fiber.Ctx, input any) error {
+	validate := validation.NewValidator()
+
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, err, fiber.StatusBadRequest)
+	}
+
+	err := validate.Struct(input)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+		return SendError(c, err, fiber.StatusBadRequest)
+	}
+
+	return nil
 }
