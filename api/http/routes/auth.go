@@ -1,4 +1,4 @@
-package route
+package routes
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers"

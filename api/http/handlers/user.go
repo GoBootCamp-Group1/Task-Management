@@ -3,8 +3,8 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 	"time"
@@ -27,7 +27,7 @@ type SignUpInput struct {
 // @Failure 400
 // @Failure 500
 // @Router /signup [post]
-func SignUpUser(userService *service.UserService) fiber.Handler {
+func SignUpUser(userService *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
 
@@ -43,7 +43,7 @@ func SignUpUser(userService *service.UserService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
-		userModel := domain.User{
+		userModel := domains.User{
 			Email:    input.Email,
 			Name:     input.Name,
 			Password: input.Password,
@@ -74,7 +74,7 @@ type LoginInput struct {
 // @Failure 400
 // @Failure 500
 // @Router /login [post]
-func LoginUser(authService *service.AuthService) fiber.Handler {
+func LoginUser(authService *services.AuthService) fiber.Handler {
 	validate := validation.NewValidator()
 
 	return func(c *fiber.Ctx) error {
@@ -106,7 +106,7 @@ func LoginUser(authService *service.AuthService) fiber.Handler {
 	}
 }
 
-func RefreshCreds(authService *service.AuthService) fiber.Handler {
+func RefreshCreds(authService *services.AuthService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		refToken := c.GetReqHeaders()["Authorization"]
 		if len(refToken[0]) == 0 {
