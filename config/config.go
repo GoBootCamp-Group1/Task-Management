@@ -4,6 +4,7 @@ type Config struct {
 	Server Server `mapstructure:"server"`
 	DB     DB     `mapstructure:"db"`
 	Redis  Redis  `mapstructure:"redis"`
+	Email  Email  `mapstructure:"email"`
 }
 
 type Server struct {
@@ -26,4 +27,14 @@ type Redis struct {
 	Address  string `mapstructure:"address"`
 	Password string `mapstructure:"password"`
 	DB       string `mapstructure:"db"`
+}
+
+type Email struct {
+	SmtpHost        string `mapstructure:"smtp_host"`
+	SmtpPort        int    `mapstructure:"smtp_port"`
+	SmtpUsername    string `mapstructure:"smtp_username"`
+	SmtpPassword    string `mapstructure:"smtp_password"`
+	SmtpFromAddress string `mapstructure:"smtp_from_address"`
+	SmtpEncryption  string `mapstructure:"smtp_encryption"`
+	SmtpFromName    string `mapstructure:"smtp_from_name"`
 }
