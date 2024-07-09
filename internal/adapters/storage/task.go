@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
@@ -26,45 +25,74 @@ var (
 )
 
 func (r *taskRepo) Create(ctx context.Context, task *domains.Task) error {
-	//var newTask entities.Task
-
-	fmt.Println(task)
-
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		fmt.Println("reached")
-		//entity := mappers.DomainToTaskEntity(task)
-		//
-		//if err := tx.WithContext(ctx).Create(&entity).Error; err != nil {
-		//	return err
-		//}
-		//task.ID = entity.ID // set the ID to the domain object after creation
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		newTask := mappers.DomainToTaskEntity(task)
+		if err := tx.Create(&newTask).Error; err != nil {
+			return err
+		}
+		task.ID = newTask.ID
 		return nil
 	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *taskRepo) GetByID(ctx context.Context, id uint) (*domains.Task, error) {
-	var b entities.Task
-	err := r.db.WithContext(ctx).Model(&entities.Task{}).Where("id = ?", id).First(&b).Error
+	var task entities.Task
+	err := r.db.WithContext(ctx).Model(&entities.Task{}).
+		Where("id = ?", id).
+		Preload("Board").
+		Preload("Creator").
+		//TODO:additional relations
+		First(&task).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return mappers.TaskEntityToDomain(&b), nil
+	return mappers.TaskEntityToDomain(&task), nil
 }
 
 func (r *taskRepo) Update(ctx context.Context, task *domains.Task) error {
 	var existingTask *entities.Task
-	if err := r.db.WithContext(ctx).Model(&entities.Task{}).Where("id = ?", task.ID).First(&existingTask).Error; err != nil {
+	err := r.db.WithContext(ctx).Model(&entities.Task{}).Where("id = ?", task.ID).First(&existingTask).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
 		return err
 	}
 
 	existingTask.Name = task.Name
+	existingTask.ParentID = task.ParentID
+	existingTask.AssigneeID = task.AssigneeID
+	existingTask.ColumnID = task.ColumnID
+	existingTask.OrderPosition = task.OrderPosition
+	existingTask.Name = task.Name
+	existingTask.Description = task.Description
+	existingTask.StartDateTime = task.StartDateTime
+	existingTask.EndDateTime = task.EndDateTime
+	existingTask.StoryPoint = task.StoryPoint
+	existingTask.Additional = task.Additional
 
 	return r.db.WithContext(ctx).Save(&existingTask).Error
 }
 
 func (r *taskRepo) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Delete(&entities.Task{}, id).Error
+
+	var existingTask *entities.Task
+	err := r.db.WithContext(ctx).Model(&entities.Task{}).Where("id = ?", id).First(&existingTask).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	return r.db.WithContext(ctx).Model(&entities.Task{}).Delete(&existingTask).Error
 }

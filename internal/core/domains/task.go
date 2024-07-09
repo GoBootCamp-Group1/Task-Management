@@ -6,12 +6,11 @@ import (
 )
 
 type Task struct {
-	ID        uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
-	CreatedBy uint
-
+	ID            uint
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     time.Time
+	CreatedBy     uint
 	BoardID       uint
 	ParentID      *uint
 	AssigneeID    *uint
@@ -21,12 +20,11 @@ type Task struct {
 	Description   string
 	StartDateTime *time.Time
 	EndDateTime   *time.Time
-	StoryPoint    *int
+	StoryPoint    int
 	Additional    json.RawMessage
-
-	//Board    Board
-	//Column   Column
-	//Parent   Task
-	//Assignee User
-	//Creator  User
+	Board         *Board
+	Creator       *User
+	//Column      *Column
+	Parent *Task
+	//Assignee    *User
 }

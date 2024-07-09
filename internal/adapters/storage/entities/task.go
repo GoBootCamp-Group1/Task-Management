@@ -11,20 +11,20 @@ type Task struct {
 	CreatedBy uint
 
 	BoardID       uint
-	ParentID      uint
-	AssigneeID    uint
+	ParentID      *uint
+	AssigneeID    *uint
 	ColumnID      uint
 	OrderPosition int
 	Name          string
 	Description   string
-	StartDateTime time.Time
-	EndDateTime   time.Time
+	StartDateTime *time.Time `gorm:"column:start_datetime"`
+	EndDateTime   *time.Time `gorm:"column:end_datetime"`
 	StoryPoint    int
 	Additional    json.RawMessage
 
-	//Board    Board
+	Board   Board `gorm:"foreignKey:BoardID"`
+	Creator User  `gorm:"foreignKey:CreatedBy"`
 	//Column   Column
 	//Parent   Task
 	//Assignee User
-	//Creator  User
 }
