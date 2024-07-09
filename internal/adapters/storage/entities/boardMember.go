@@ -8,5 +8,5 @@ type BoardMember struct {
 	gorm.Model
 	BoardID uint `gorm:"index"`
 	UserID  uint `gorm:"index"`
-	Role    string
+	RoleID  uint `gorm:"index"`
 }
