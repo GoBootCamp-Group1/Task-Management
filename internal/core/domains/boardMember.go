@@ -1,12 +1,8 @@
 package domains
 
-import (
-	"gorm.io/gorm"
-)
-
 type BoardMember struct {
-	gorm.Model
+	ID      uint
 	BoardID uint
 	UserID  uint
-	Role    string
+	RoleID  uint
 }

@@ -44,8 +44,15 @@ func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domains.BoardM
 }
 
 func (r *boardMemberRepo) Update(ctx context.Context, member *domains.BoardMember) error {
-	entity := mappers.DomainToBoardMemberEntity(member)
-	return r.db.WithContext(ctx).Save(&entity).Error
+
+	var existingBoardMember *entities.BoardMember
+	if err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", member.ID).First(&existingBoardMember).Error; err != nil {
+		return err
+	}
+	existingBoardMember.RoleID = member.RoleID
+	existingBoardMember.UserID = member.UserID
+	existingBoardMember.BoardID = member.BoardID
+	return r.db.WithContext(ctx).Save(&existingBoardMember).Error
 }
 
 func (r *boardMemberRepo) Delete(ctx context.Context, id uint) error {
