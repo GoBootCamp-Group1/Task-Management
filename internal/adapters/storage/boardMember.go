@@ -14,6 +14,10 @@ type boardMemberRepo struct {
 	db *gorm.DB
 }
 
+var (
+	ErrBoardMemberAlreadyExists = errors.New("board member already exists")
+)
+
 func NewBoardMemberRepo(db *gorm.DB) port.BoardMemberRepo {
 	return &boardMemberRepo{
 		db: db,
@@ -21,6 +25,14 @@ func NewBoardMemberRepo(db *gorm.DB) port.BoardMemberRepo {
 }
 
 func (r *boardMemberRepo) Create(ctx context.Context, member *domain.BoardMember) error {
+	var existingBoardMember entities.BoardMember
+	err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("board_id = ? AND user_id = ?", member.BoardID, member.UserID).First(&existingBoardMember).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if existingBoardMember.ID != 0 {
+		return ErrBoardMemberAlreadyExists
+	}
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToBoardMemberEntity(member)
 		if err := tx.WithContext(ctx).Create(&entity).Error; err != nil {
@@ -44,8 +56,15 @@ func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domain.BoardMe
 }
 
 func (r *boardMemberRepo) Update(ctx context.Context, member *domain.BoardMember) error {
-	entity := mappers.DomainToBoardMemberEntity(member)
-	return r.db.WithContext(ctx).Save(&entity).Error
+
+	var existingBoardMember *entities.BoardMember
+	if err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", member.ID).First(&existingBoardMember).Error; err != nil {
+		return err
+	}
+	existingBoardMember.RoleID = member.RoleID
+	existingBoardMember.UserID = member.UserID
+	existingBoardMember.BoardID = member.BoardID
+	return r.db.WithContext(ctx).Save(&existingBoardMember).Error
 }
 
 func (r *boardMemberRepo) Delete(ctx context.Context, id uint) error {
