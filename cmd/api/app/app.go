@@ -7,6 +7,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/notification"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -15,6 +16,7 @@ type Container struct {
 	cfg           config.Config
 	dbConn        *gorm.DB
 	cacheClient   *redis.Client
+	notifier     *notification.Notifier
 	userService   *service.UserService
 	authService   *service.AuthService
 	boardService  *service.BoardService
@@ -29,6 +31,8 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.mustInitCache()
 	app.mustInitDB()
 	storage.Migrate(app.dbConn)
+
+	app.initNotifier()
 
 	app.setUserService()
 	app.setAuthService()
@@ -89,6 +93,39 @@ func (a *Container) mustInitCache() {
 	}
 
 	a.cacheClient = redisClient
+}
+
+func (a *Container) initNotifier() {
+	if a.notifier != nil {
+		return
+	}
+
+	//needed services
+	notifiersConf := make(map[string]notification.NotifierConf)
+
+	//init database conf
+	notifiersConf["database"] = &notification.DatabaseNotifierConf{
+		TableName: "notifications",
+		Db:        a.dbConn,
+	}
+
+	//init email conf
+	notifiersConf["email"] = &notification.EmailNotifierConf{
+		SmtpHost:        a.cfg.Email.SmtpHost,
+		SmtpPort:        a.cfg.Email.SmtpPort,
+		SmtpUsername:    a.cfg.Email.SmtpUsername,
+		SmtpPassword:    a.cfg.Email.SmtpPassword,
+		SmtpFromAddress: a.cfg.Email.SmtpFromAddress,
+		SmtpEncryption:  a.cfg.Email.SmtpEncryption,
+		SmtpFromName:    a.cfg.Email.SmtpFromName,
+	}
+
+	notifier, err := notification.NewNotifier(notifiersConf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	a.notifier = notifier
 }
 
 func (a *Container) setAuthService() {
