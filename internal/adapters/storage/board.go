@@ -71,3 +71,17 @@ func (r *boardRepo) Update(ctx context.Context, board *domain.Board) error {
 func (r *boardRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entities.Board{}, id).Error
 }
+
+func (r *boardRepo) GetAll(ctx context.Context) ([]*domain.Board, error) {
+	var boards []entities.Board
+	err := r.db.WithContext(ctx).Find(&boards).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var domainBoards []*domain.Board
+	for _, board := range boards {
+		domainBoards = append(domainBoards, mappers.BoardEntityToDomain(&board))
+	}
+	return domainBoards, nil
+}

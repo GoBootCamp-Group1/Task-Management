@@ -29,3 +29,7 @@ func (s *BoardService) UpdateBoard(ctx context.Context, board *domain.Board) err
 func (s *BoardService) DeleteBoard(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
+
+func (s *BoardService) GetAllBoards(ctx context.Context) ([]*domain.Board, error) {
+	return s.repo.GetAll(ctx)
+}
