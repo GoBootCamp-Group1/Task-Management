@@ -1,4 +1,4 @@
-package domain
+package domains
 
 type BoardMember struct {
 	ID      uint

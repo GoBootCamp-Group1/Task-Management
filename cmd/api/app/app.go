@@ -4,7 +4,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/notification"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -12,13 +12,15 @@ import (
 )
 
 type Container struct {
-	cfg          config.Config
-	dbConn       *gorm.DB
-	cacheClient  *redis.Client
-	notifier     *notification.Notifier
-	userService  *service.UserService
-	authService  *service.AuthService
-	boardService *service.BoardService
+	cfg           config.Config
+	dbConn        *gorm.DB
+	cacheClient   *redis.Client
+	notifier      *notification.Notifier
+	userService   *services.UserService
+	authService   *services.AuthService
+	boardService  *services.BoardService
+	taskService   *services.TaskService
+	columnService *services.ColumnService
 }
 
 func NewAppContainer(cfg config.Config) (*Container, error) {
@@ -35,6 +37,7 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.setUserService()
 	app.setAuthService()
 	app.setBoardService()
+	app.setColumnService()
 
 	return app, nil
 }
@@ -43,23 +46,31 @@ func (a *Container) RawRBConnection() *gorm.DB {
 	return a.dbConn
 }
 
-func (a *Container) UserService() *service.UserService {
+func (a *Container) UserService() *services.UserService {
 	return a.userService
 }
 
-func (a *Container) AuthService() *service.AuthService {
+func (a *Container) AuthService() *services.AuthService {
 	return a.authService
 }
 
-func (a *Container) BoardService() *service.BoardService {
+func (a *Container) BoardService() *services.BoardService {
 	return a.boardService
+}
+
+func (a *Container) TaskService() *services.TaskService {
+	return a.taskService
+}
+
+func (a *Container) ColumnService() *services.ColumnService {
+	return a.columnService
 }
 
 func (a *Container) setUserService() {
 	if a.userService != nil {
 		return
 	}
-	a.userService = service.NewUserService(storage.NewUserRepo(a.dbConn))
+	a.userService = services.NewUserService(storage.NewUserRepo(a.dbConn))
 }
 
 func (a *Container) mustInitDB() {
@@ -126,7 +137,7 @@ func (a *Container) setAuthService() {
 		return
 	}
 
-	a.authService = service.NewAuthService(storage.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
+	a.authService = services.NewAuthService(storage.NewUserRepo(a.dbConn), []byte(a.cfg.Server.TokenSecret),
 		a.cfg.Server.TokenExpMinutes,
 		a.cfg.Server.RefreshTokenExpMinutes)
 }
@@ -135,5 +146,19 @@ func (a *Container) setBoardService() {
 	if a.boardService != nil {
 		return
 	}
-	a.boardService = service.NewBoardService(storage.NewBoardRepo(a.dbConn))
+	a.boardService = services.NewBoardService(storage.NewBoardRepo(a.dbConn))
+}
+
+func (a *Container) setTaskService() {
+	if a.taskService != nil {
+		return
+	}
+	a.taskService = services.NewTaskService(storage.NewTaskRepo(a.dbConn))
+}
+
+func (a *Container) setColumnService() {
+	if a.columnService != nil {
+		return
+	}
+	a.columnService = services.NewColumnService(storage.NewColumnRepo(a.dbConn))
 }
