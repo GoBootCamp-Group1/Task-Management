@@ -35,10 +35,10 @@ var (
 // CreateTask creates a new task
 // @Summary Create Task
 // @Description creates a task
-// @Tags Create Task
+// @Tags Task
 // @Accept  json
 // @Produce json
-// @Param   body  body      CreateTaskRequest  true  "Create Task"
+// @Param   body  body      TaskRequest  true  "Create Task"
 // @Success 200
 // @Failure 400
 // @Failure 500
@@ -103,10 +103,11 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 	}
 }
 
+/*
 // GetTaskByID get a task
 // @Summary Get Task
 // @Description gets a task
-// @Tags Get Task
+// @Tags Task
 // @Produce json
 // @Param   id      path     string  true  "Task ID"
 // @Success 200 {object} domains.Task
@@ -115,6 +116,7 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 // @Failure 500
 // @Router /boards/{boardID}/tasks/{taskID} [get]
 // @Security ApiKeyAuth
+*/
 func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -138,10 +140,11 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 	}
 }
 
+/*
 // GetTasksByBoardID get tasks for a board
 // @Summary Get Tasks
 // @Description gets tasks for a board
-// @Tags Get Tasks
+// @Tags Task
 // @Produce json
 // @Param   boardID  path     string  true  "Board ID"
 // @Success 200 {array} presenter.TaskPresenter
@@ -150,6 +153,7 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 // @Failure 500
 // @Router /boards/{boardID}/tasks [get]
 // @Security ApiKeyAuth
+*/
 func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		boardID, err := c.ParamsInt("boardID")
@@ -188,11 +192,11 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 // UpdateTask updates a new task
 // @Summary Update Task
 // @Description updates a task
-// @Tags Update Task
+// @Tags Task
 // @Accept  json
 // @Produce json
 // @Param   id      path     string  true  "Task ID"
-// @Param   body  body      UpdateTaskRequest  true  "Update Task"
+// @Param   body  body      TaskRequest  true  "Update Task"
 // @Success 200
 // @Failure 400
 // @Failure 500
@@ -252,7 +256,7 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 // DeleteTask delete a task
 // @Summary Delete Task
 // @Description deleted a task
-// @Tags Delete Task
+// @Tags Task
 // @Produce json
 // @Param   id      path     string  true  "Task ID"
 // @Success 204

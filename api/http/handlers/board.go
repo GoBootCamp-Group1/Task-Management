@@ -18,7 +18,7 @@ type CreateBoardRequest struct {
 // CreateBoard creates a new board
 // @Summary Create Board
 // @Description creates a board
-// @Tags Create Board
+// @Tags Board
 // @Accept  json
 // @Produce json
 // @Param   body  body      CreateBoardRequest  true  "Create Board"
@@ -65,7 +65,7 @@ func CreateBoard(boardService *services.BoardService) fiber.Handler {
 // GetBoardByID get a board
 // @Summary Get Board
 // @Description gets a board
-// @Tags Get Board
+// @Tags Board
 // @Produce json
 // @Param   id      path     string  true  "Board ID"
 // @Success 200 {object} domains.Board
@@ -102,7 +102,7 @@ type UpdateBoardRequest struct {
 // UpdateBoard updates a new board
 // @Summary Update Board
 // @Description updates a board
-// @Tags Update Board
+// @Tags Board
 // @Accept  json
 // @Produce json
 // @Param   id      path     string  true  "Board ID"
@@ -149,7 +149,7 @@ func UpdateBoard(boardService *services.BoardService) fiber.Handler {
 // DeleteBoard delete a board
 // @Summary Delete Board
 // @Description deleted a board
-// @Tags Delete Board
+// @Tags Board
 // @Produce json
 // @Param   id      path     string  true  "Board ID"
 // @Success 204

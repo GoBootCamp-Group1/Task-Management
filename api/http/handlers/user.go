@@ -20,7 +20,7 @@ type SignUpInput struct {
 // SignUpUser handles the registration of a new user
 // @Summary User registration
 // @Description Register a user with email, name and password
-// @Tags SignUp
+// @Tags Authentication
 // @Accept  json
 // @Produce json
 // @Param   body  body      SignUpInput  true  "User Registration"
@@ -70,7 +70,7 @@ type LoginInput struct {
 // LoginUser handles the login of a user
 // @Summary User login
 // @Description login user with email and password
-// @Tags Login
+// @Tags Authentication
 // @Accept  json
 // @Produce json
 // @Param   body  body      LoginInput  true  "User Login"
