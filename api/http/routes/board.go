@@ -17,4 +17,8 @@ func InitBoardRoutes(router *fiber.Router, app *app.Container, cfg config.Server
 	boardGroup.Put("/:id", handlers.UpdateBoard(app.BoardService()))
 	boardGroup.Get("/:id", handlers.GetBoardByID(app.BoardService()))
 	boardGroup.Delete("/:id", handlers.DeleteBoard(app.BoardService()))
+
+	boardGroup.Post("/:id/add-user", handlers.InviteUserToBoard(app.BoardService()))
+	boardGroup.Delete("/:board_id/users/:user_id", handlers.RemoveUserFromBoard(app.BoardService()))
+	boardGroup.Put("/:board_id/users/:user_id", handlers.ChangeUserRoleInBoard(app.BoardService()))
 }

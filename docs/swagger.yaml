@@ -26,6 +26,11 @@ definitions:
       order_position:
         type: integer
     type: object
+  handlers.ChangeUserRoleRequest:
+    properties:
+      role_name:
+        type: string
+    type: object
   handlers.CreateBoardRequest:
     properties:
       is_private:
@@ -51,6 +56,13 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  handlers.InviteUserRequest:
+    properties:
+      role_name:
+        type: string
+      user_id:
+        type: integer
     type: object
   handlers.LoginInput:
     properties:
@@ -132,6 +144,71 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create Board
+      tags:
+      - Board
+  /boards/{board_id}/users/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: removes a user from board
+      parameters:
+      - description: Board ID
+        in: path
+        name: board_id
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Remove User from Board
+      tags:
+      - Board
+    put:
+      consumes:
+      - application/json
+      description: changes user role in board
+      parameters:
+      - description: Board ID
+        in: path
+        name: board_id
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Create Board
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ChangeUserRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Change User Role in Board
       tags:
       - Board
   /boards/{boardID}/tasks/{id}:
@@ -265,6 +342,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update Board
+      tags:
+      - Board
+  /boards/{id}/add-user:
+    post:
+      consumes:
+      - application/json
+      description: invites a user to board
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create Board
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.InviteUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Invite User to Board
       tags:
       - Board
   /columns:
