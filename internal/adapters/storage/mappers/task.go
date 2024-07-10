@@ -45,5 +45,6 @@ func TaskEntityToDomain(entity *entities.Task) *domains.Task {
 
 		Board:   BoardEntityToDomain(&entity.Board),
 		Creator: UserEntityToDomain(&entity.Creator),
+		Column:  ColumnEntityToDomain(&entity.Column),
 	}
 }

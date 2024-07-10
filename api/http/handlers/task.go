@@ -138,6 +138,53 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 	}
 }
 
+// GetTasksByBoardID get tasks for a board
+// @Summary Get Tasks
+// @Description gets tasks for a board
+// @Tags Get Tasks
+// @Produce json
+// @Param   boardID  path     string  true  "Board ID"
+// @Success 200 {array} presenter.TaskPresenter
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /boards/{boardID}/tasks [get]
+// @Security ApiKeyAuth
+func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		// init variables for pagination
+		page, pageSize := PageAndPageSize(c)
+
+		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), uint(boardID), uint(page), uint(pageSize))
+		if err != nil {
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		if len(tasks) == 0 {
+			return SendError(c, fiber.NewError(fiber.StatusNotFound, "No tasks found"), fiber.StatusNotFound)
+		}
+
+		//generate response data
+		taskPresenters := make([]*presenter.TaskPresenter, len(tasks))
+		for i, task := range tasks {
+			taskPresenters[i] = presenter.NewTaskPresenter(task)
+		}
+
+		return c.Status(fiber.StatusOK).JSON(map[string]any{
+			"data":      taskPresenters,
+			"message":   "Successfully fetched.",
+			"page":      uint(page),
+			"page_size": uint(pageSize),
+			"total":     total,
+		})
+	}
+}
+
 // UpdateTask updates a new task
 // @Summary Update Task
 // @Description updates a task

@@ -13,8 +13,9 @@ func InitTaskRoutes(router *fiber.Router, app *app.Container, cfg config.Server)
 
 	taskGroup := (*router).Group("/boards/:boardID/tasks", middlerwares.Auth([]byte(cfg.TokenSecret)))
 
-	taskGroup.Post("", handlers.CreateTask(app.TaskService()))
+	taskGroup.Post("/", handlers.CreateTask(app.TaskService()))
 	taskGroup.Put("/:id", handlers.UpdateTask(app.TaskService()))
+	taskGroup.Get("/", handlers.GetTasksByBoardID(app.TaskService()))
 	taskGroup.Get("/:id", handlers.GetTaskByID(app.TaskService()))
 	taskGroup.Delete("/:id", handlers.DeleteTask(app.TaskService()))
 }

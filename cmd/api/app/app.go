@@ -37,6 +37,7 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.setUserService()
 	app.setAuthService()
 	app.setBoardService()
+	app.setTaskService()
 	app.setColumnService()
 
 	return app, nil
