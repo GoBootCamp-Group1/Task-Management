@@ -60,19 +60,19 @@ func (s *BoardService) GetBoardMembersByBoardId(ctx context.Context, boardId uin
 	return users, nil
 }
 
-func (s *BoardService) GetRoleByUserIDAndBoardId(ctx context.Context, userID, boardID uint) (string, error) {
+func (s *BoardService) GetRoleByUserIDAndBoardId(ctx context.Context, userID, boardID uint) (*domains.Role, error) {
 	// Fetch board member details
 
 	boardMember, err := s.boardMemberRepo.GetBoardMember(ctx, boardID, userID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Fetch role details using roleRepo
 	role, err := s.roleRepo.GetByID(ctx, boardMember.RoleID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return role.Name, nil
+	return role, nil
 }

@@ -4,4 +4,5 @@ type Role struct {
 	ID          uint
 	Name        string
 	Description string
+	Weight      int
 }
