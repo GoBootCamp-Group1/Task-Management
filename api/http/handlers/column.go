@@ -20,6 +20,7 @@ type CreateColumnRequest struct {
 
 // @Summary Create Column
 // @Description create a column
+// @Tags Column
 // @Accept json
 // @Success 200
 // @Failure 400
@@ -69,10 +70,10 @@ func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 // GetColumnByID get a column
 // @Summary Get Column
 // @Description gets a column
-// @Tags Get Column
+// @Tags Column
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
-// @Success 200 {object} domain.Column
+// @Success 200 {object} domains.Column
 // @Failure 400
 // @Failure 404
 // @Failure 500

@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  domain.Board:
+  domains.Board:
     properties:
       createdBy:
         type: integer
@@ -10,6 +10,21 @@ definitions:
         type: boolean
       name:
         type: string
+    type: object
+  domains.Column:
+    properties:
+      boardID:
+        type: integer
+      createdBy:
+        type: integer
+      id:
+        type: integer
+      isFinal:
+        type: boolean
+      name:
+        type: string
+      orderPosition:
+        type: integer
     type: object
   handlers.CreateBoardRequest:
     properties:
@@ -55,6 +70,8 @@ definitions:
     - email
     - name
     - password
+    type: object
+  handlers.TaskRequest:
     type: object
   handlers.UpdateBoardRequest:
     properties:
@@ -103,7 +120,61 @@ paths:
       - ApiKeyAuth: []
       summary: Create Board
       tags:
-      - Create Board
+      - Board
+  /boards/{boardID}/tasks/{id}:
+    delete:
+      description: deleted a task
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Task
+      tags:
+      - Task
+  /boards/{boardID}/tasks/{taskID}:
+    put:
+      consumes:
+      - application/json
+      description: updates a task
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Task
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Update Task
+      tags:
+      - Task
   /boards/{id}:
     delete:
       description: deleted a board
@@ -126,7 +197,7 @@ paths:
       - ApiKeyAuth: []
       summary: Delete Board
       tags:
-      - Delete Board
+      - Board
     get:
       description: gets a board
       parameters:
@@ -141,7 +212,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Board'
+            $ref: '#/definitions/domains.Board'
         "400":
           description: Bad Request
         "404":
@@ -152,7 +223,7 @@ paths:
       - ApiKeyAuth: []
       summary: Get Board
       tags:
-      - Get Board
+      - Board
     put:
       consumes:
       - application/json
@@ -182,7 +253,51 @@ paths:
       - ApiKeyAuth: []
       summary: Update Board
       tags:
-      - Update Board
+      - Board
+  /columns/{boardId}:
+    post:
+      consumes:
+      - application/json
+      description: create a column
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create Column
+      tags:
+      - Column
+  /columns/{id}:
+    get:
+      description: gets a column
+      parameters:
+      - description: Column ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domains.Column'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Column
+      tags:
+      - Column
   /login:
     post:
       consumes:
@@ -206,7 +321,7 @@ paths:
           description: Internal Server Error
       summary: User login
       tags:
-      - Login
+      - Authentication
   /signup:
     post:
       consumes:
@@ -230,7 +345,33 @@ paths:
           description: Internal Server Error
       summary: User registration
       tags:
-      - SignUp
+      - Authentication
+  /tasks:
+    post:
+      consumes:
+      - application/json
+      description: creates a task
+      parameters:
+      - description: Create Task
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create Task
+      tags:
+      - Task
 security:
 - ApiKeyAuth: []
 securityDefinitions:
