@@ -23,8 +23,8 @@ func (a *Adapter) SendInAppNotification(ctx context.Context, userID uint, input 
 	}
 
 	notificationInput := &notification2.InAppInput{
-		Type: input.Type,
-		Data: input.Data,
+		Type:    input.Type,
+		Message: input.Message,
 	}
 
 	return a.notifier.InApp.Send(ctx, userID, notificationInput)
