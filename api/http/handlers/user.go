@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/service"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 	"time"
@@ -102,6 +103,7 @@ func LoginUser(authService *service.AuthService) fiber.Handler {
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
 
+		log.InfoLog.Println("User logged in successfully")
 		return SendUserToken(c, authToken)
 	}
 }
