@@ -60,9 +60,10 @@ func SignUpUser(userService *services.UserService) fiber.Handler {
 			log.ErrorLog.Printf("Error creating user: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("User signed up (created) successfully")
+		msg := "User signed up (created) successfully"
+		log.InfoLog.Println(msg)
 
-		return SendSuccessResponse(c, "user")
+		return SendSuccessResponse(c, msg, userModel)
 	}
 }
 

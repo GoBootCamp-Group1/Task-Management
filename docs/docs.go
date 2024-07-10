@@ -332,6 +332,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handlers.CreateColumnRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {

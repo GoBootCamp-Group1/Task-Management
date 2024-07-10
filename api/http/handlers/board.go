@@ -64,9 +64,10 @@ func CreateBoard(boardService *services.BoardService) fiber.Handler {
 			log.ErrorLog.Printf("Error creating board: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("Board created successfully")
+		msg := "Board created successfully"
+		log.InfoLog.Println(msg)
 
-		return SendSuccessResponse(c, "board")
+		return SendSuccessResponse(c, msg, boardModel)
 	}
 }
 
@@ -156,9 +157,10 @@ func UpdateBoard(boardService *services.BoardService) fiber.Handler {
 			log.ErrorLog.Printf("Error updating board: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("Board updated successfully")
+		msg := "Board updated successfully"
+		log.InfoLog.Println(msg)
 
-		return SendSuccessResponse(c, "board")
+		return SendSuccessResponse(c, msg, boardModel)
 	}
 }
 
