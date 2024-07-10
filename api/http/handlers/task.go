@@ -6,6 +6,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers/presenter"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"time"
@@ -30,6 +31,8 @@ var (
 	ErrInvalidBoardIDParam        = errors.New("invalid board id")
 	ErrInvalidStartDatetimeLayout = errors.New("invalid start datetime format, example: " + dateTimeLayout)
 	ErrInvalidEndDatetimeLayout   = errors.New("invalid end datetime format, example: " + dateTimeLayout)
+	ErrTaskNotFound               = fiber.NewError(fiber.StatusNotFound, "Task not found")
+	ErrNoTaskFound                = fiber.NewError(fiber.StatusNotFound, "No tasks found")
 )
 
 // CreateTask creates a new task
@@ -57,22 +60,26 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 		//Get User ID
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
 			return SendError(c, errUserID, fiber.StatusInternalServerError)
 		}
 
 		//Get Board ID
 		boardID, errBoardID := c.ParamsInt("boardID")
 		if errBoardID != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errBoardID)
 			return SendError(c, ErrInvalidBoardIDParam, fiber.StatusBadRequest)
 		}
 
 		//datetime parse
 		startDateTime, errInvalidStartDt := time.Parse(dateTimeLayout, input.StartDateTime)
 		if errInvalidStartDt != nil {
+			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidStartDt)
 			return SendError(c, ErrInvalidStartDatetimeLayout, fiber.StatusBadRequest)
 		}
 		endDateTime, errInvalidEndDt := time.Parse(dateTimeLayout, input.EndDateTime)
 		if errInvalidEndDt != nil {
+			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidEndDt)
 			return SendError(c, ErrInvalidEndDatetimeLayout, fiber.StatusBadRequest)
 		}
 
@@ -93,8 +100,10 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 
 		createdTask, err := taskService.CreateTask(c.Context(), &taskModel)
 		if err != nil {
+			log.ErrorLog.Printf("Error creating task: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+		log.InfoLog.Println("Task created successfully")
 
 		return c.Status(fiber.StatusOK).JSON(map[string]any{
 			"data":    presenter.NewTaskPresenter(createdTask),
@@ -121,17 +130,21 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		task, err := taskService.GetTaskByID(c.Context(), uint(id))
 		if err != nil {
+			log.ErrorLog.Printf("Error getting task: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if task == nil {
-			return SendError(c, fiber.NewError(fiber.StatusNotFound, "Task not found"), fiber.StatusNotFound)
+			log.ErrorLog.Printf("Error getting task: %v\n", ErrTaskNotFound)
+			return SendError(c, ErrTaskNotFound, fiber.StatusNotFound)
 		}
+		log.InfoLog.Println("Task loaded successfully")
 
 		return c.Status(fiber.StatusOK).JSON(map[string]any{
 			"data":    presenter.NewTaskPresenter(task),
@@ -158,6 +171,7 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		boardID, err := c.ParamsInt("boardID")
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
@@ -166,11 +180,13 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 
 		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), uint(boardID), uint(page), uint(pageSize))
 		if err != nil {
+			log.ErrorLog.Printf("Error gettings tasks: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if len(tasks) == 0 {
-			return SendError(c, fiber.NewError(fiber.StatusNotFound, "No tasks found"), fiber.StatusNotFound)
+			log.ErrorLog.Printf("Error getting tasks: %v\n", ErrNoTaskFound)
+			return SendError(c, ErrNoTaskFound, fiber.StatusNotFound)
 		}
 
 		//generate response data
@@ -178,6 +194,7 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 		for i, task := range tasks {
 			taskPresenters[i] = presenter.NewTaskPresenter(task)
 		}
+		log.InfoLog.Println("Tasks loaded successfully")
 
 		return c.Status(fiber.StatusOK).JSON(map[string]any{
 			"data":      taskPresenters,
@@ -214,16 +231,19 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 
 		id, err := c.ParamsInt("id")
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		//datetime parse
 		startDateTime, errInvalidStartDt := time.Parse(dateTimeLayout, input.StartDateTime)
 		if errInvalidStartDt != nil {
+			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidStartDt)
 			return SendError(c, ErrInvalidStartDatetimeLayout, fiber.StatusBadRequest)
 		}
 		endDateTime, errInvalidEndDt := time.Parse(dateTimeLayout, input.EndDateTime)
 		if errInvalidEndDt != nil {
+			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidStartDt)
 			return SendError(c, ErrInvalidEndDatetimeLayout, fiber.StatusBadRequest)
 		}
 
@@ -243,8 +263,10 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 
 		updatedTask, err := taskService.UpdateTask(c.Context(), &taskModel)
 		if err != nil {
+			log.ErrorLog.Printf("Error updating task: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+		log.InfoLog.Println("Task updated successfully")
 
 		return c.Status(fiber.StatusOK).JSON(map[string]any{
 			"data":    presenter.NewTaskPresenter(updatedTask),
@@ -268,13 +290,16 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err = taskService.DeleteTask(c.Context(), uint(id))
 		if err != nil {
+			log.ErrorLog.Printf("Error deleting task: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+		log.InfoLog.Println("Task deleted successfully")
 
 		return c.SendStatus(fiber.StatusNoContent)
 	}

@@ -58,3 +58,24 @@ func (r *boardMemberRepo) Update(ctx context.Context, member *domains.BoardMembe
 func (r *boardMemberRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entities.BoardMember{}, id).Error
 }
+
+func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]domains.BoardMember, error) {
+	var boardMemberEntities []entities.BoardMember
+	err := r.db.WithContext(ctx).Where("board_id = ?", boardID).Find(&boardMemberEntities).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return mappers.BoardMemberEntitiesToDomain(boardMemberEntities), nil
+
+}
+func (r *boardMemberRepo) GetBoardMember(ctx context.Context, boardID, userID uint) (*domains.BoardMember, error) {
+	var boardMember domains.BoardMember
+	err := r.db.WithContext(ctx).
+		Where("board_id = ? AND user_id = ?", boardID, userID).
+		First(&boardMember).Error
+	if err != nil {
+		return nil, err
+	}
+	return &boardMember, nil
+}
