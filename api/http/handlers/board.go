@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
@@ -33,17 +33,19 @@ func CreateBoard(boardService *services.BoardService) fiber.Handler {
 		var input CreateBoardRequest
 
 		if err := c.BodyParser(&input); err != nil {
+			log.ErrorLog.Printf("Error parsing board creation request body: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err := validate.Struct(input)
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.ErrorLog.Printf("Error validating board creation request body: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		userId, err := utils.GetUserID(c)
 		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
 
@@ -55,8 +57,10 @@ func CreateBoard(boardService *services.BoardService) fiber.Handler {
 
 		err = boardService.CreateBoard(c.Context(), &boardModel)
 		if err != nil {
+			log.ErrorLog.Printf("Error creating board: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+		log.InfoLog.Println("Board created successfully")
 
 		return SendSuccessResponse(c, "board")
 	}
@@ -78,18 +82,23 @@ func GetBoardByID(boardService *services.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		board, err := boardService.GetBoardByID(c.Context(), uint(id))
 		if err != nil {
+			log.ErrorLog.Printf("Error getting board: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if board == nil {
-			return SendError(c, fiber.NewError(fiber.StatusNotFound, "Board not found"), fiber.StatusNotFound)
+			ErrBoardNotFound := fiber.NewError(fiber.StatusNotFound, "Board not found")
+			log.ErrorLog.Printf("Error getting board: %v\n", ErrBoardNotFound)
+			return SendError(c, ErrBoardNotFound, fiber.StatusNotFound)
 		}
 
+		log.InfoLog.Println("Board loaded successfully")
 		return c.JSON(board)
 	}
 }
@@ -117,17 +126,19 @@ func UpdateBoard(boardService *services.BoardService) fiber.Handler {
 		validate := validation.NewValidator()
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 		var input UpdateBoardRequest
 
 		if err = c.BodyParser(&input); err != nil {
+			log.ErrorLog.Printf("Error parsing board update request body: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err = validate.Struct(input)
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.ErrorLog.Printf("Error validating board update request body: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
@@ -139,8 +150,10 @@ func UpdateBoard(boardService *services.BoardService) fiber.Handler {
 
 		err = boardService.UpdateBoard(c.Context(), &boardModel)
 		if err != nil {
+			log.ErrorLog.Printf("Error updating board: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+		log.InfoLog.Println("Board updated successfully")
 
 		return SendSuccessResponse(c, "board")
 	}
@@ -161,13 +174,16 @@ func DeleteBoard(boardService *services.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err = boardService.DeleteBoard(c.Context(), uint(id))
 		if err != nil {
+			log.ErrorLog.Printf("Error deleting board: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+		log.InfoLog.Println("Board deleted successfully")
 
 		return c.SendStatus(fiber.StatusNoContent)
 	}
