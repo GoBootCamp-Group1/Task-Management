@@ -10,5 +10,5 @@ type BoardMemberRepo interface {
 	GetByID(ctx context.Context, id uint) (*domain.BoardMember, error)
 	Update(ctx context.Context, member *domain.BoardMember) error
 	Delete(ctx context.Context, id uint) error
-	GetBoardMembers(ctx context.Context, boardID uint) ([]*domain.BoardMember, error)
+	GetBoardMembers(ctx context.Context, boardID uint) ([]domain.BoardMember, error)
 }

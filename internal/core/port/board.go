@@ -10,5 +10,5 @@ type BoardRepo interface {
 	GetByID(ctx context.Context, id uint) (*domain.Board, error)
 	Update(ctx context.Context, board *domain.Board) error
 	Delete(ctx context.Context, id uint) error
-	GetAll(ctx context.Context) ([]*domain.Board, error)
+	GetAll(ctx context.Context) ([]domain.Board, error)
 }

@@ -135,5 +135,6 @@ func (a *Container) setBoardService() {
 	if a.boardService != nil {
 		return
 	}
-	a.boardService = service.NewBoardService(storage.NewBoardRepo(a.dbConn))
+	a.boardService = service.NewBoardService(storage.NewBoardRepo(a.dbConn), storage.NewBoardMemberRepo(a.dbConn),
+		storage.NewUserRepo(a.dbConn))
 }

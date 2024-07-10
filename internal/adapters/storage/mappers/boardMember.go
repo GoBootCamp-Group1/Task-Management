@@ -3,6 +3,7 @@ package mappers
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/fp"
 	"gorm.io/gorm"
 )
 
@@ -24,4 +25,16 @@ func BoardMemberEntityToDomain(entity *entities.BoardMember) *domain.BoardMember
 		UserID:  entity.UserID,
 		RoleID:  entity.RoleID,
 	}
+}
+
+func BoardMemberEntitiesToDomain(boardMemberEntities []entities.BoardMember) []domain.BoardMember {
+	return fp.Map(boardMemberEntities, func(entity entities.BoardMember) domain.BoardMember {
+		return *BoardMemberEntityToDomain(&entity)
+	})
+}
+
+func BoardMemberDomainsToEntity(boardMemberDomains []domain.BoardMember) []entities.BoardMember {
+	return fp.Map(boardMemberDomains, func(member domain.BoardMember) entities.BoardMember {
+		return *DomainToBoardMemberEntity(&member)
+	})
 }
