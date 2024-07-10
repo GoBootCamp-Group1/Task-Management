@@ -2,6 +2,8 @@ package http
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/middlerwares"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/routes"
 	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
@@ -9,7 +11,6 @@ import (
 	_ "github.com/GoBootCamp-Group1/Task-Management/docs"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
-	"log"
 )
 
 func Run(cfg config.Server, app *app.Container) {
@@ -22,6 +23,7 @@ func Run(cfg config.Server, app *app.Container) {
 	routes.InitAuthRoutes(&api, app)
 	routes.InitBoardRoutes(&api, app, cfg)
 	routes.InitTaskRoutes(&api, app, cfg)
+	routes.InitColumnRoutes(&api, app, cfg)
 
 	// run server
 	log.Fatal(fiberApp.Listen(fmt.Sprintf("%s:%d", cfg.Host, cfg.HttpPort)))

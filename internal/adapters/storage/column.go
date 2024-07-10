@@ -16,7 +16,8 @@ type columnRepo struct {
 }
 
 var (
-	ErrColumnAlreadyExists = errors.New("column already exists")
+	ErrColumnAlreadyExists     = errors.New("column already exists")
+	ErrOrderPositionOutOfRange = errors.New("order position is out of range")
 )
 
 func NewColumnRepo(db *gorm.DB) ports.ColumnRepo {
@@ -40,7 +41,7 @@ func (r *columnRepo) Create(ctx context.Context, column *domains.Column) error {
 	}
 
 	err = r.db.WithContext(ctx).Model(&entities.Column{}).Order("order_position DESC").First(&lastColumn).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	if lastColumn.ID != 0 {
@@ -105,6 +106,7 @@ func (r *columnRepo) Update(ctx context.Context, updateColumn *domains.ColumnUpd
 
 func (r *columnRepo) Move(ctx context.Context, moveColumn *domains.ColumnMove) error {
 	var foundColumn *entities.Column
+	var lastColumn entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: moveColumn.ID}}).First(&foundColumn).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -115,6 +117,15 @@ func (r *columnRepo) Move(ctx context.Context, moveColumn *domains.ColumnMove) e
 
 	if foundColumn.OrderPosition == moveColumn.OrderPosition {
 		return nil
+	}
+
+	err = r.db.WithContext(ctx).Model(&entities.Column{}).Order("order_position DESC").First(&lastColumn).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if moveColumn.OrderPosition < 1 || moveColumn.OrderPosition > lastColumn.OrderPosition {
+		return ErrOrderPositionOutOfRange
 	}
 
 	var allColumns []*entities.Column
