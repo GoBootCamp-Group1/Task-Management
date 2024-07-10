@@ -49,6 +49,14 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 	//check role
 	//edit and move relate to assignee or maintainer and owner
 	//get parent id
+
+	//use case by ali
+	//role,err:=s.app.GetRoleByUserIDAndBoardId(ctx ,userID,boardID)
+	//enumrole:=domains.ParseRole(role.Name)
+	//if enumrole >domains.Maintainer{
+	//	do somthing
+	//}
+
 	errCreate := s.repo.Create(ctx, task)
 	if errCreate != nil {
 		return nil, fmt.Errorf("repository: can not create task: %w", errCreate)
