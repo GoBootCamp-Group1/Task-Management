@@ -48,16 +48,37 @@ func NewDatabaseNotifier(cfg *DatabaseNotifierConf) (*DatabaseNotifierConfIntern
 
 func (s *DatabaseNotifierConfInternal) Send(ctx context.Context, userID uint, input *notification.InAppInput) error {
 	fmt.Printf("Storing Notification inside database for user : %d :: %v", userID, input)
+
+	sql := "INSERT INTO ? (created_at, updated_at, user_id, type, data) VALUES (NOW(), NOW(), ?, ?, ?)"
+	err := s.db.WithContext(ctx).Exec(sql, s.TableName, userID, input.Type, input.Data).Error
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (s *DatabaseNotifierConfInternal) Read(ctx context.Context, notificationID uint) error {
 	fmt.Printf("Reading Notification inside database for notification : %d ", notificationID)
+
+	sql := "UPDATE ? SET updated_at = NOW(), read_at = NOW() WHERE id = ?"
+	err := s.db.WithContext(ctx).Exec(sql, s.TableName, notificationID).Error
+
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *DatabaseNotifierConfInternal) Delete(ctx context.Context, notificationID uint) error {
 	fmt.Printf("Deleting Notification inside database for notification : %d ", notificationID)
+	sql := "UPDATE ? SET updated_at = NOW(), deleted_at = NOW() WHERE id = ?"
+	err := s.db.WithContext(ctx).Exec(sql, s.TableName, notificationID).Error
+
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
