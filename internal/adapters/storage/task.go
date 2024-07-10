@@ -20,9 +20,48 @@ func NewTaskRepo(db *gorm.DB) ports.TaskRepo {
 	}
 }
 
-var (
-	ErrTaskAlreadyExists = errors.New("task already exists")
-)
+func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]*domains.Task, uint, error) {
+	var taskEntities []*entities.Task
+
+	query := r.db.WithContext(ctx).
+		Model(&entities.Task{}).
+		Where("board_id = ?", boardID).
+		Preload("Board").
+		Preload("Column").
+		Preload("Creator")
+
+	//calculate total entities
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	//apply offset
+	if offset > 0 {
+		query = query.Offset(int(offset))
+	}
+
+	//apply limit
+	if limit > 0 {
+		query = query.Limit(int(limit))
+	}
+
+	//fetch entities
+	if err := query.Find(&taskEntities).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+
+	var taskModels []*domains.Task
+	for _, taskEntity := range taskEntities {
+		model := mappers.TaskEntityToDomain(taskEntity)
+		taskModels = append(taskModels, model)
+	}
+
+	return taskModels, uint(total), nil
+}
 
 func (r *taskRepo) Create(ctx context.Context, task *domains.Task) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -47,6 +86,7 @@ func (r *taskRepo) GetByID(ctx context.Context, id uint) (*domains.Task, error) 
 		Where("id = ?", id).
 		Preload("Board").
 		Preload("Creator").
+		Preload("Column").
 		//TODO:additional relations
 		First(&task).Error
 	if err != nil {
