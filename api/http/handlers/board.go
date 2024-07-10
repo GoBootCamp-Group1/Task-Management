@@ -10,6 +10,10 @@ import (
 	"strconv"
 )
 
+var (
+	ErrBoardNotFound = fiber.NewError(fiber.StatusNotFound, "Board not found")
+)
+
 type CreateBoardRequest struct {
 	Name      string `json:"name" validate:"required,min=3,max=50,excludesall=;" example:"new board"`
 	IsPrivate bool   `json:"is_private" example:"false"`
@@ -93,7 +97,6 @@ func GetBoardByID(boardService *services.BoardService) fiber.Handler {
 		}
 
 		if board == nil {
-			ErrBoardNotFound := fiber.NewError(fiber.StatusNotFound, "Board not found")
 			log.ErrorLog.Printf("Error getting board: %v\n", ErrBoardNotFound)
 			return SendError(c, ErrBoardNotFound, fiber.StatusNotFound)
 		}

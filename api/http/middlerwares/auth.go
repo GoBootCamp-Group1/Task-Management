@@ -11,18 +11,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+var (
+	ErrNoAuthToken        = errors.New("authorization token not specified")
+	ErrMalformedAuthToken = errors.New("authorization token is malformed")
+	ErrTokenExpired       = errors.New("token expired")
+)
+
 func Auth(secret []byte) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		h := c.GetReqHeaders()["Authorization"]
 		if len(h) == 0 {
-			ErrNoAuthToken := errors.New("authorization token not specified")
 			log.ErrorLog.Printf("Error authenticating: %v\n", ErrNoAuthToken)
 			return handlers.SendError(c, ErrNoAuthToken, fiber.StatusUnauthorized)
 		}
 
 		// Check if the Authorization header starts with "Bearer "
 		if !strings.HasPrefix(h[0], "Bearer ") {
-			ErrMalformedAuthToken := errors.New("authorization token is malformed")
 			log.ErrorLog.Printf("Error malformed authentication token: %v\n", ErrMalformedAuthToken)
 			return handlers.SendError(c, ErrMalformedAuthToken, fiber.StatusUnauthorized)
 		}
@@ -39,7 +43,6 @@ func Auth(secret []byte) fiber.Handler {
 		c.Locals(jwt.UserClaimKey, claims)
 
 		if claims.ExpiresAt.Before(time.Now()) {
-			ErrTokenExpired := errors.New("token expired")
 			log.ErrorLog.Printf("Error expired token: %v\n", ErrTokenExpired)
 			return handlers.SendError(c, ErrTokenExpired, fiber.StatusUnauthorized)
 		}
