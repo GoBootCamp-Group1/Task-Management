@@ -43,21 +43,6 @@ func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageN
 	return tasks, total, nil
 }
 
-func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageNumber uint, pageSize uint) ([]*domains.Task, uint, error) {
-	//TODO: check for permissions
-	//pagination calculate
-	limit := pageSize
-	offset := (pageNumber - 1) * pageSize
-
-	//fetch tasks
-	tasks, total, errFetch := s.repo.GetListByBoardID(ctx, boardID, limit, offset)
-	if errFetch != nil {
-		return nil, 0, fmt.Errorf("repository: can not fetch tasks: %w", errFetch)
-	}
-
-	return tasks, total, nil
-}
-
 func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*domains.Task, error) {
 	//TODO: check for permissions
 	//some business logic checks before creating task
