@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"strings"
 	"time"
 
@@ -14,12 +15,16 @@ func Auth(secret []byte) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		h := c.GetReqHeaders()["Authorization"]
 		if len(h) == 0 {
-			return handlers.SendError(c, errors.New("authorization token not specified"), fiber.StatusUnauthorized)
+			ErrNoAuthToken := errors.New("authorization token not specified")
+			log.ErrorLog.Printf("Error authenticating: %v\n", ErrNoAuthToken)
+			return handlers.SendError(c, ErrNoAuthToken, fiber.StatusUnauthorized)
 		}
 
 		// Check if the Authorization header starts with "Bearer "
 		if !strings.HasPrefix(h[0], "Bearer ") {
-			return handlers.SendError(c, errors.New("authorization token is malformed"), fiber.StatusUnauthorized)
+			ErrMalformedAuthToken := errors.New("authorization token is malformed")
+			log.ErrorLog.Printf("Error malformed authentication token: %v\n", ErrMalformedAuthToken)
+			return handlers.SendError(c, ErrMalformedAuthToken, fiber.StatusUnauthorized)
 		}
 
 		// Extract the token part
@@ -27,13 +32,16 @@ func Auth(secret []byte) fiber.Handler {
 
 		claims, err := jwt.ParseToken(tokenString, secret)
 		if err != nil {
+			log.ErrorLog.Printf("Error unathorized: %v\n", err)
 			return handlers.SendError(c, err, fiber.StatusUnauthorized)
 		}
 
 		c.Locals(jwt.UserClaimKey, claims)
 
 		if claims.ExpiresAt.Before(time.Now()) {
-			return handlers.SendError(c, errors.New("token expired"), fiber.StatusUnauthorized)
+			ErrTokenExpired := errors.New("token expired")
+			log.ErrorLog.Printf("Error expired token: %v\n", ErrTokenExpired)
+			return handlers.SendError(c, ErrTokenExpired, fiber.StatusUnauthorized)
 		}
 
 		return c.Next()
