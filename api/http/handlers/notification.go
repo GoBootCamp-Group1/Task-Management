@@ -190,7 +190,7 @@ func ReadNotification(NotificationService *services.NotificationService) fiber.H
 
 		return SendSuccessResponse(
 			c,
-			"Successfully fetched.",
+			"Successfully updated.",
 			presenter.NewNotificationPresenter(updatedNotification),
 		)
 	}
@@ -227,7 +227,7 @@ func UnReadNotification(NotificationService *services.NotificationService) fiber
 
 		return SendSuccessResponse(
 			c,
-			"Successfully fetched.",
+			"Successfully updated.",
 			presenter.NewNotificationPresenter(updatedNotification),
 		)
 	}
