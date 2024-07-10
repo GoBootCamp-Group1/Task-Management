@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+var (
+	ErrRefreshTokenNotProvided = errors.New("token should be provided")
+)
+
 type SignUpInput struct {
 	Email    string `json:"email" validate:"required,email,excludesall=;" example:"test@example.com"`
 	Name     string `json:"name" validate:"required,min=3,max=20,excludesall=;" example:"test"`
@@ -117,7 +121,6 @@ func RefreshCreds(authService *services.AuthService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		refToken := c.GetReqHeaders()["Authorization"]
 		if len(refToken[0]) == 0 {
-			ErrRefreshTokenNotProvided := errors.New("token should be provided")
 			log.ErrorLog.Printf("Error refreshing token: %v\n", ErrRefreshTokenNotProvided)
 			return SendError(c, ErrRefreshTokenNotProvided, fiber.StatusBadRequest)
 		}
