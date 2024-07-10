@@ -50,9 +50,7 @@ func (r *roleRepository) Create(ctx context.Context, role *domains.Role) error {
 func (r *roleRepository) GetByID(ctx context.Context, id uint) (*domains.Role, error) {
 	var entity entities.Role
 	if err := r.db.WithContext(ctx).First(&entity, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
+
 		return nil, err
 	}
 	return mappers.RoleEntityToDomain(&entity), nil
