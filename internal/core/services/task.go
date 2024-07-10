@@ -8,15 +8,28 @@ import (
 )
 
 type TaskService struct {
-	repo ports.TaskRepo
+	repo     ports.TaskRepo
+	notifier ports.Notifier
 }
 
-func NewTaskService(repo ports.TaskRepo) *TaskService {
-	return &TaskService{repo: repo}
+func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier) *TaskService {
+	return &TaskService{
+		repo:     repo,
+		notifier: notifier,
+	}
 }
 
 func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageNumber uint, pageSize uint) ([]*domains.Task, uint, error) {
 	//TODO: check for permissions
+	input := ports.NotificationInput{
+		Type:    "test",
+		Message: "some data",
+	}
+	err := s.notifier.SendInAppNotification(ctx, 1, input)
+	if err != nil {
+		fmt.Println(err)
+		return nil, 0, err
+	}
 	//pagination calculate
 	limit := pageSize
 	offset := (pageNumber - 1) * pageSize
@@ -36,7 +49,6 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 	//check role
 	//edit and move relate to assignee or maintainer and owner
 	//get parent id
-
 	errCreate := s.repo.Create(ctx, task)
 	if errCreate != nil {
 		return nil, fmt.Errorf("repository: can not create task: %w", errCreate)
