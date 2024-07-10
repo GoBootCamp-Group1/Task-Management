@@ -66,8 +66,8 @@ func (r *notificationRepo) Delete(ctx context.Context, notification *domains.Not
 	return r.db.WithContext(ctx).Delete(&n).Error
 }
 
-func (r *notificationRepo) GetList(ctx context.Context, userID uint, limit uint, offset uint) ([]*domains.Notification, uint, error) {
-	var notificationEntities []*entities.Notification
+func (r *notificationRepo) GetList(ctx context.Context, userID uint, limit uint, offset uint) ([]domains.Notification, uint, error) {
+	var notificationEntities []entities.Notification
 
 	query := r.db.WithContext(ctx).
 		Model(&entities.Notification{}).
@@ -98,17 +98,11 @@ func (r *notificationRepo) GetList(ctx context.Context, userID uint, limit uint,
 		return nil, 0, err
 	}
 
-	var notificationModels []*domains.Notification
-	for _, notificationEntity := range notificationEntities {
-		model := mappers.NotificationEntityToDomain(notificationEntity)
-		notificationModels = append(notificationModels, model)
-	}
-
-	return notificationModels, uint(total), nil
+	return mappers.NotificationEntitiesToDomain(notificationEntities), uint(total), nil
 }
 
-func (r *notificationRepo) GetUnreadList(ctx context.Context, userID uint, limit uint, offset uint) ([]*domains.Notification, uint, error) {
-	var notificationEntities []*entities.Notification
+func (r *notificationRepo) GetUnreadList(ctx context.Context, userID uint, limit uint, offset uint) ([]domains.Notification, uint, error) {
+	var notificationEntities []entities.Notification
 
 	query := r.db.WithContext(ctx).
 		Model(&entities.Notification{}).
@@ -140,11 +134,5 @@ func (r *notificationRepo) GetUnreadList(ctx context.Context, userID uint, limit
 		return nil, 0, err
 	}
 
-	var notificationModels []*domains.Notification
-	for _, notificationEntity := range notificationEntities {
-		model := mappers.NotificationEntityToDomain(notificationEntity)
-		notificationModels = append(notificationModels, model)
-	}
-
-	return notificationModels, uint(total), nil
+	return mappers.NotificationEntitiesToDomain(notificationEntities), uint(total), nil
 }

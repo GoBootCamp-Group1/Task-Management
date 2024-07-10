@@ -47,10 +47,11 @@ func GetNotificationByID(NotificationService *services.NotificationService) fibe
 		}
 		log.InfoLog.Println("Notification loaded successfully")
 
-		return c.Status(fiber.StatusOK).JSON(map[string]any{
-			"data":    presenter.NewNotificationPresenter(Notification),
-			"message": "Successfully fetched.",
-		})
+		return SendSuccessResponse(
+			c,
+			"Successfully fetched.",
+			presenter.NewNotificationPresenter(Notification),
+		)
 	}
 }
 
@@ -91,17 +92,18 @@ func GetAllNotifications(NotificationService *services.NotificationService) fibe
 		//generate response data
 		NotificationPresenters := make([]*presenter.NotificationPresenter, len(Notifications))
 		for i, Notification := range Notifications {
-			NotificationPresenters[i] = presenter.NewNotificationPresenter(Notification)
+			NotificationPresenters[i] = presenter.NewNotificationPresenter(&Notification)
 		}
 		log.InfoLog.Println("Notifications loaded successfully")
 
-		return c.Status(fiber.StatusOK).JSON(map[string]any{
-			"data":      NotificationPresenters,
-			"message":   "Successfully fetched.",
-			"page":      uint(page),
-			"page_size": uint(pageSize),
-			"total":     total,
-		})
+		return SendSuccessPaginateResponse(
+			c,
+			"Successfully fetched.",
+			NotificationPresenters,
+			uint(page),
+			uint(pageSize),
+			total,
+		)
 	}
 }
 
@@ -142,17 +144,18 @@ func GetUnreadNotifications(NotificationService *services.NotificationService) f
 		//generate response data
 		NotificationPresenters := make([]*presenter.NotificationPresenter, len(Notifications))
 		for i, Notification := range Notifications {
-			NotificationPresenters[i] = presenter.NewNotificationPresenter(Notification)
+			NotificationPresenters[i] = presenter.NewNotificationPresenter(&Notification)
 		}
 		log.InfoLog.Println("Notifications loaded successfully")
 
-		return c.Status(fiber.StatusOK).JSON(map[string]any{
-			"data":      NotificationPresenters,
-			"message":   "Successfully fetched.",
-			"page":      uint(page),
-			"page_size": uint(pageSize),
-			"total":     total,
-		})
+		return SendSuccessPaginateResponse(
+			c,
+			"Successfully fetched.",
+			NotificationPresenters,
+			uint(page),
+			uint(pageSize),
+			total,
+		)
 	}
 }
 
@@ -185,10 +188,11 @@ func ReadNotification(NotificationService *services.NotificationService) fiber.H
 		}
 		log.InfoLog.Println("Notification updated successfully")
 
-		return c.Status(fiber.StatusOK).JSON(map[string]any{
-			"data":    presenter.NewNotificationPresenter(updatedNotification),
-			"message": "Successfully fetched.",
-		})
+		return SendSuccessResponse(
+			c,
+			"Successfully fetched.",
+			presenter.NewNotificationPresenter(updatedNotification),
+		)
 	}
 }
 
@@ -221,10 +225,11 @@ func UnReadNotification(NotificationService *services.NotificationService) fiber
 		}
 		log.InfoLog.Println("Notification updated successfully")
 
-		return c.Status(fiber.StatusOK).JSON(map[string]any{
-			"data":    presenter.NewNotificationPresenter(updatedNotification),
-			"message": "Successfully fetched.",
-		})
+		return SendSuccessResponse(
+			c,
+			"Successfully fetched.",
+			presenter.NewNotificationPresenter(updatedNotification),
+		)
 	}
 }
 

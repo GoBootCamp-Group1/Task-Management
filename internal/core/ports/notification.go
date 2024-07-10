@@ -10,6 +10,6 @@ type NotificationRepo interface {
 	Read(ctx context.Context, notification *domains.Notification) (*domains.Notification, error)
 	UnRead(ctx context.Context, notification *domains.Notification) (*domains.Notification, error)
 	Delete(ctx context.Context, notification *domains.Notification) error
-	GetList(ctx context.Context, userID uint, limit uint, offset uint) ([]*domains.Notification, uint, error)
-	GetUnreadList(ctx context.Context, userID uint, limit uint, offset uint) ([]*domains.Notification, uint, error)
+	GetList(ctx context.Context, userID uint, limit uint, offset uint) ([]domains.Notification, uint, error)
+	GetUnreadList(ctx context.Context, userID uint, limit uint, offset uint) ([]domains.Notification, uint, error)
 }

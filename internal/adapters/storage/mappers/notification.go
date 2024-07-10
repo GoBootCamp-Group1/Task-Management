@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/fp"
 	"gorm.io/gorm"
 	"time"
 )
@@ -57,4 +58,16 @@ func DomainToNotificationEntity(model *domains.Notification) *entities.Notificat
 		Type:      model.Type,
 		Message:   model.Message,
 	}
+}
+
+func NotificationEntitiesToDomain(notificationEntities []entities.Notification) []domains.Notification {
+	return fp.Map(notificationEntities, func(entity entities.Notification) domains.Notification {
+		return *NotificationEntityToDomain(&entity)
+	})
+}
+
+func NotificationDomainsToEntity(notificationDomains []domains.Notification) []entities.Notification {
+	return fp.Map(notificationDomains, func(member domains.Notification) entities.Notification {
+		return *DomainToNotificationEntity(&member)
+	})
 }

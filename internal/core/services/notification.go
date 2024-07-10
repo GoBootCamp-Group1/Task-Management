@@ -17,7 +17,7 @@ func NewNotificationService(repo ports.NotificationRepo) *NotificationService {
 	}
 }
 
-func (s *NotificationService) GetAllNotificationsList(ctx context.Context, userID uint, pageNumber uint, pageSize uint) ([]*domains.Notification, uint, error) {
+func (s *NotificationService) GetAllNotificationsList(ctx context.Context, userID uint, pageNumber uint, pageSize uint) ([]domains.Notification, uint, error) {
 	limit := pageSize
 	offset := (pageNumber - 1) * pageSize
 
@@ -30,7 +30,7 @@ func (s *NotificationService) GetAllNotificationsList(ctx context.Context, userI
 	return notifications, total, nil
 }
 
-func (s *NotificationService) GetUnReadNotificationsList(ctx context.Context, userID uint, pageNumber uint, pageSize uint) ([]*domains.Notification, uint, error) {
+func (s *NotificationService) GetUnReadNotificationsList(ctx context.Context, userID uint, pageNumber uint, pageSize uint) ([]domains.Notification, uint, error) {
 	limit := pageSize
 	offset := (pageNumber - 1) * pageSize
 
