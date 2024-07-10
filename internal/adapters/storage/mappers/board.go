@@ -25,8 +25,8 @@ func BoardEntityToDomain(entity *entities.Board) *domains.Board {
 	}
 }
 
-func BoardEntitiesToDomain(boardEntities []entities.Board) []domain.Board {
-	return fp.Map(boardEntities, func(entity entities.Board) domain.Board {
+func BoardEntitiesToDomain(boardEntities []entities.Board) []domains.Board {
+	return fp.Map(boardEntities, func(entity entities.Board) domains.Board {
 		return *BoardEntityToDomain(&entity)
 	})
 }

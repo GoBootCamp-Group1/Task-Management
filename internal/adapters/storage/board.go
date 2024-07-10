@@ -72,7 +72,7 @@ func (r *boardRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entities.Board{}, id).Error
 }
 
-func (r *boardRepo) GetAll(ctx context.Context) ([]domain.Board, error) {
+func (r *boardRepo) GetAll(ctx context.Context) ([]domains.Board, error) {
 	var boards []entities.Board
 	err := r.db.WithContext(ctx).Find(&boards).Error
 	if err != nil {

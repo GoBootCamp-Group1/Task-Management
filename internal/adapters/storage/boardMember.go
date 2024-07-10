@@ -59,7 +59,7 @@ func (r *boardMemberRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entities.BoardMember{}, id).Error
 }
 
-func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]domain.BoardMember, error) {
+func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]domains.BoardMember, error) {
 	var boardMemberEntities []entities.BoardMember
 	err := r.db.WithContext(ctx).Where("board_id = ?", boardID).Find(&boardMemberEntities).Error
 	if err != nil {
