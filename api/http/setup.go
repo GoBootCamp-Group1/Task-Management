@@ -2,14 +2,15 @@ package http
 
 import (
 	"fmt"
+
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/middlerwares"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/routes"
 	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	_ "github.com/GoBootCamp-Group1/Task-Management/docs"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
-	"log"
 )
 
 func Run(cfg config.Server, app *app.Container) {
@@ -22,9 +23,14 @@ func Run(cfg config.Server, app *app.Container) {
 	routes.InitAuthRoutes(&api, app)
 	routes.InitBoardRoutes(&api, app, cfg)
 	routes.InitTaskRoutes(&api, app, cfg)
+	routes.InitColumnRoutes(&api, app, cfg)
 
 	// run server
-	log.Fatal(fiberApp.Listen(fmt.Sprintf("%s:%d", cfg.Host, cfg.HttpPort)))
+	err := fiberApp.Listen(fmt.Sprintf("%s:%d", cfg.Host, cfg.HttpPort))
+	if err != nil {
+		log.ErrorLog.Fatal(err)
+	}
+	log.InfoLog.Println("Starting the application...")
 }
 
 func userRoleChecker() fiber.Handler {

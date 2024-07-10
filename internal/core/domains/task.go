@@ -24,7 +24,7 @@ type Task struct {
 	Additional    json.RawMessage
 	Board         *Board
 	Creator       *User
-	//Column      *Column
-	Parent *Task
+	Column        *Column
+	Parent        *Task
 	//Assignee    *User
 }
