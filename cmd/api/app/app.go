@@ -13,15 +13,16 @@ import (
 )
 
 type Container struct {
-	cfg           config.Config
-	dbConn        *gorm.DB
-	cacheClient   *redis.Client
-	notifier      *notification.Notifier
-	userService   *services.UserService
-	authService   *services.AuthService
-	boardService  *services.BoardService
-	taskService   *services.TaskService
-	columnService *services.ColumnService
+	cfg                 config.Config
+	dbConn              *gorm.DB
+	cacheClient         *redis.Client
+	notifier            *notification.Notifier
+	userService         *services.UserService
+	authService         *services.AuthService
+	boardService        *services.BoardService
+	taskService         *services.TaskService
+	columnService       *services.ColumnService
+	notificationService *services.NotificationService
 }
 
 func NewAppContainer(cfg config.Config) (*Container, error) {
@@ -40,6 +41,7 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.setBoardService()
 	app.setTaskService()
 	app.setColumnService()
+	app.setNotificationService()
 
 	return app, nil
 }
@@ -66,6 +68,10 @@ func (a *Container) TaskService() *services.TaskService {
 
 func (a *Container) ColumnService() *services.ColumnService {
 	return a.columnService
+}
+
+func (a *Container) NotificationService() *services.NotificationService {
+	return a.notificationService
 }
 
 func (a *Container) setUserService() {
@@ -165,4 +171,11 @@ func (a *Container) setColumnService() {
 		return
 	}
 	a.columnService = services.NewColumnService(storage.NewColumnRepo(a.dbConn))
+}
+
+func (a *Container) setNotificationService() {
+	if a.notificationService != nil {
+		return
+	}
+	a.notificationService = services.NewNotificationService(storage.NewNotificationRepo(a.dbConn))
 }
