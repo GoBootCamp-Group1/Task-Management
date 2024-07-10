@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/notifier"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/notification"
@@ -109,13 +110,13 @@ func (a *Container) initNotifier() {
 	notifiersConf := make(map[string]notification.NotifierConf)
 
 	//init database conf
-	notifiersConf["database"] = &notification.DatabaseNotifierConf{
+	notifiersConf[notification.DB_NOTIFIER] = &notification.DatabaseNotifierConf{
 		TableName: "notifications",
 		Db:        a.dbConn,
 	}
 
 	//init email conf
-	notifiersConf["email"] = &notification.EmailNotifierConf{
+	notifiersConf[notification.EMAIL_NOTIFIER] = &notification.EmailNotifierConf{
 		SmtpHost:        a.cfg.Email.SmtpHost,
 		SmtpPort:        a.cfg.Email.SmtpPort,
 		SmtpUsername:    a.cfg.Email.SmtpUsername,
@@ -125,12 +126,12 @@ func (a *Container) initNotifier() {
 		SmtpFromName:    a.cfg.Email.SmtpFromName,
 	}
 
-	notifier, err := notification.NewNotifier(notifiersConf)
+	n, err := notification.NewNotifier(notifiersConf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	a.notifier = notifier
+	a.notifier = n
 }
 
 func (a *Container) setAuthService() {
@@ -147,14 +148,16 @@ func (a *Container) setBoardService() {
 	if a.boardService != nil {
 		return
 	}
-	a.boardService = services.NewBoardService(storage.NewBoardRepo(a.dbConn))
+	a.boardService = services.NewBoardService(storage.NewBoardRepo(a.dbConn), storage.NewBoardMemberRepo(a.dbConn), storage.NewUserRepo(a.dbConn), storage.NewRoleRepo(a.dbConn))
 }
 
 func (a *Container) setTaskService() {
 	if a.taskService != nil {
 		return
 	}
-	a.taskService = services.NewTaskService(storage.NewTaskRepo(a.dbConn))
+	taskRepository := storage.NewTaskRepo(a.dbConn)
+	notifierAdapter := notifier.NewNotifierAdapter(a.notifier)
+	a.taskService = services.NewTaskService(taskRepository, notifierAdapter)
 }
 
 func (a *Container) setColumnService() {
