@@ -23,7 +23,7 @@ var (
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /Notifications/{NotificationID} [get]
+// @Router /notifications/{id} [get]
 // @Security ApiKeyAuth
 func GetNotificationByID(NotificationService *services.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -169,7 +169,7 @@ func GetUnreadNotifications(NotificationService *services.NotificationService) f
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /notifications/{notificationID}/read [patch]
+// @Router /notifications/{id}/read [patch]
 // @Security ApiKeyAuth
 func ReadNotification(NotificationService *services.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -206,7 +206,7 @@ func ReadNotification(NotificationService *services.NotificationService) fiber.H
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /notifications/{notificationID}/unread [patch]
+// @Router /notifications/{id}/unread [patch]
 // @Security ApiKeyAuth
 func UnReadNotification(NotificationService *services.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -242,7 +242,7 @@ func UnReadNotification(NotificationService *services.NotificationService) fiber
 // @Success 204
 // @Failure 400
 // @Failure 500
-// @Router /Notifications/{id} [delete]
+// @Router /notifications/{id} [delete]
 // @Security ApiKeyAuth
 func DeleteNotification(NotificationService *services.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
