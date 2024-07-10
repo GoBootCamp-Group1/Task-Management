@@ -8,6 +8,7 @@ import (
 
 var (
 	InfoLog    *log.Logger
+	TraceLog   *log.Logger
 	WarningLog *log.Logger
 	ErrorLog   *log.Logger
 )
@@ -21,6 +22,7 @@ func init() {
 	multiWriter := io.MultiWriter(os.Stdout, logFile)
 
 	InfoLog = log.New(multiWriter, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	WarningLog = log.New(multiWriter, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	TraceLog = log.New(logFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	WarningLog = log.New(logFile, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	ErrorLog = log.New(multiWriter, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
