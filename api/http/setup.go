@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/middlerwares"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/routes"

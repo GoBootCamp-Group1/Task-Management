@@ -48,6 +48,13 @@ func (r *columnRepo) Create(ctx context.Context, column *domains.Column) error {
 		lastPosition = lastColumn.OrderPosition + 1
 	}
 
+	if column.IsFinal {
+		err = r.db.Model(&entities.Column{}).Where(&entities.Column{BoardID: column.BoardID}).Update("is_final", false).Error
+		if err != nil {
+			return nil
+		}
+	}
+
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToColumnEntity(column)
 		entity.OrderPosition = lastPosition

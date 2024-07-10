@@ -26,6 +26,8 @@ type CreateColumnRequest struct {
 // @Description create a column
 // @Tags Column
 // @Accept json
+// @Produce json
+// @Param   body      body     CreateColumnRequest  true  "Create Column"
 // @Success 200
 // @Failure 400
 // @Failure 500
@@ -112,6 +114,17 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// GetAllColumns get all columns of a board
+// @Summary Get Columns
+// @Description gets all columns of a bard
+// @Tags Column
+// @Produce json
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns [get]
+// @Security ApiKeyAuth
 func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		boardId, errParam := c.ParamsInt("boardId")
@@ -131,6 +144,20 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// UpdateColumn update a column
+// @Summary Update Column
+// @Description update a column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Param   name      body     string  true  "New Column name"
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id} [put]
+// @Security ApiKeyAuth
 func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
@@ -164,6 +191,20 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// MoveColumn move a column
+// @Summary Move Column
+// @Description move a column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Param   order_position      body     number  true  "new position of column [id]"
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id}/move [put]
+// @Security ApiKeyAuth
 func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
@@ -197,6 +238,19 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// FinalColumn make a column as a final column
+// @Summary Final Column
+// @Description make a column as a final column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id}/final [put]
+// @Security ApiKeyAuth
 func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
@@ -215,6 +269,18 @@ func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// DeleteColumn delete a column
+// @Summary Delete Column
+// @Description delete a column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Success 200
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id} [delete]
+// @Security ApiKeyAuth
 func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
