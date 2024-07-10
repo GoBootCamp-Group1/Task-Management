@@ -5,8 +5,8 @@ import (
 )
 
 type NotificationInput struct {
-	Type string
-	Data string
+	Type    string
+	Message string
 }
 
 type Notifier interface {
