@@ -10,12 +10,14 @@ type BoardService struct {
 	boardRepo       ports.BoardRepo
 	boardMemberRepo ports.BoardMemberRepo
 	userRepo        ports.UserRepo
+	roleRepo        ports.RoleRepository
 }
 
-func NewBoardService(boardRepo ports.BoardRepo, boardMemberRepo ports.BoardMemberRepo, userRepo ports.UserRepo) *BoardService {
+func NewBoardService(boardRepo ports.BoardRepo, boardMemberRepo ports.BoardMemberRepo, userRepo ports.UserRepo, roleRepo ports.RoleRepository) *BoardService {
 	return &BoardService{boardRepo: boardRepo,
 		boardMemberRepo: boardMemberRepo,
-		userRepo:        userRepo}
+		userRepo:        userRepo,
+		roleRepo:        roleRepo}
 }
 
 func (s *BoardService) CreateBoard(ctx context.Context, board *domains.Board) error {
@@ -56,4 +58,21 @@ func (s *BoardService) GetBoardMembersByBoardId(ctx context.Context, boardId uin
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (s *BoardService) GetRoleByUserIDAndBoardId(ctx context.Context, userID, boardID uint) (string, error) {
+	// Fetch board member details
+
+	boardMember, err := s.boardMemberRepo.GetBoardMember(ctx, boardID, userID)
+	if err != nil {
+		return "", err
+	}
+
+	// Fetch role details using roleRepo
+	role, err := s.roleRepo.GetByID(ctx, boardMember.RoleID)
+	if err != nil {
+		return "", err
+	}
+
+	return role.Name, nil
 }
