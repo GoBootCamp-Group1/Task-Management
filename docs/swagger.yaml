@@ -300,6 +300,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/handlers.CreateColumnRequest'
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
       produces:
       - application/json
       responses:

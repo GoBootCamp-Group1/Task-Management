@@ -19,10 +19,21 @@ var (
 
 type ServiceFactory[T any] func(context.Context) T
 
-func SendSuccessResponse(c *fiber.Ctx, entity string) error {
-	return c.Status(fiber.StatusOK).JSON(map[string]any{
-		"message": fmt.Sprintf("%s created successfully", entity),
-	})
+type Response struct {
+	Success bool   `json:"success"`
+	Status  int    `json:"status"`
+	Data    any    `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+func SendSuccessResponse(c *fiber.Ctx, message string, data any) error {
+	response := Response{
+		Success: true,
+		Status:  fiber.StatusOK,
+		Data:    data,
+		Message: message,
+	}
+	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 func SendError(c *fiber.Ctx, err error, status int) error {
@@ -32,17 +43,25 @@ func SendError(c *fiber.Ctx, err error, status int) error {
 
 	c.Locals(valuecontext.IsTxError, err)
 
-	return c.Status(status).JSON(map[string]any{
-		"error_msg": err.Error(),
-	})
+	response := Response{
+		Success: false,
+		Status:  status,
+		Message: err.Error(),
+	}
+	return c.Status(status).JSON(response)
 }
 
 func SendUserToken(c *fiber.Ctx, authToken *services.UserToken) error {
-	return c.Status(fiber.StatusOK).JSON(map[string]any{
-		"auth":    authToken.AuthorizationToken,
-		"refresh": authToken.RefreshToken,
-		"exp":     authToken.ExpiresAt,
-	})
+	response := Response{
+		Success: true,
+		Status:  fiber.StatusOK,
+		Data: map[string]interface{}{
+			"auth":    authToken.AuthorizationToken,
+			"refresh": authToken.RefreshToken,
+			"exp":     authToken.ExpiresAt,
+		},
+	}
+	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 func PageAndPageSize(c *fiber.Ctx) (int, int) {

@@ -28,6 +28,7 @@ type CreateColumnRequest struct {
 // @Accept json
 // @Produce json
 // @Param   body      body     CreateColumnRequest  true  "Create Column"
+// @Param   boardId      path     string  true  "Board ID"
 // @Success 200
 // @Failure 400
 // @Failure 500
@@ -71,10 +72,14 @@ func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error creating column: %v\n", err)
 			return SendError(c, err, 0)
 		}
-		log.InfoLog.Println("Column created successfully")
+		MsgColumnCreation := "Column created successfully"
+		log.InfoLog.Println(MsgColumnCreation)
 
 		// todo: sending response should handle better
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnCreation,
+			columnModel)
 	}
 }
 
@@ -185,9 +190,13 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error updating column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Column updated successfully")
+		MsgColumnUpdate := "Column updated successfully"
+		log.InfoLog.Println(MsgColumnUpdate)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnUpdate,
+			input)
 	}
 }
 
@@ -232,9 +241,13 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error moving column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Column moved successfully")
+		MsgColumnMove := "Column moved successfully"
+		log.InfoLog.Println(MsgColumnMove)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnMove,
+			input)
 	}
 }
 
@@ -263,9 +276,13 @@ func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error changing final column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Final column changed successfully")
+		MsgFinalColumnChange := "Final column changed successfully"
+		log.InfoLog.Println(MsgFinalColumnChange)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgFinalColumnChange,
+			id)
 	}
 }
 
@@ -293,8 +310,12 @@ func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error deleting column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Column deleted successfully")
+		MsgColumnDelete := "Column deleted successfully"
+		log.InfoLog.Println(MsgColumnDelete)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnDelete,
+			id)
 	}
 }
