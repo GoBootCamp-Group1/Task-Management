@@ -1,4 +1,4 @@
-package port
+package ports
 
 import (
 	"context"
@@ -10,5 +10,4 @@ type BoardMemberRepo interface {
 	GetByID(ctx context.Context, id uint) (*domains.BoardMember, error)
 	Update(ctx context.Context, member *domains.BoardMember) error
 	Delete(ctx context.Context, id uint) error
-	GetBoardMembers(ctx context.Context, boardID uint) ([]domains.BoardMember, error)
 }

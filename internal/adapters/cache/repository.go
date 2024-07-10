@@ -2,7 +2,7 @@ package cache
 
 import (
 	"context"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"github.com/redis/go-redis/v9"
 	"sync"
 	"time"
@@ -17,7 +17,7 @@ type CacheRepository struct {
 	client *redis.Client
 }
 
-func NewCacheRepository(client *redis.Client) port.CacheRepository {
+func NewCacheRepository(client *redis.Client) ports.CacheRepository {
 	once.Do(func() {
 		instance = &CacheRepository{
 			client: client,

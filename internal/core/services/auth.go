@@ -1,9 +1,9 @@
-package service
+package services
 
 import (
 	"context"
-	user_model "github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	user_repo "github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
+	user_model "github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	user_repo "github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"time"
 

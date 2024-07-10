@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domain"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/core/port"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +14,7 @@ type boardRepo struct {
 	db *gorm.DB
 }
 
-func NewBoardRepo(db *gorm.DB) port.BoardRepo {
+func NewBoardRepo(db *gorm.DB) ports.BoardRepo {
 	return &boardRepo{
 		db: db,
 	}
@@ -24,7 +24,7 @@ var (
 	ErrBoardAlreadyExists = errors.New("board already exists")
 )
 
-func (r *boardRepo) Create(ctx context.Context, board *domain.Board) error {
+func (r *boardRepo) Create(ctx context.Context, board *domains.Board) error {
 	var existingBoard entities.Board
 	err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("name = ? AND created_by = ?", board.Name, board.CreatedBy).First(&existingBoard).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -44,7 +44,7 @@ func (r *boardRepo) Create(ctx context.Context, board *domain.Board) error {
 	})
 }
 
-func (r *boardRepo) GetByID(ctx context.Context, id uint) (*domain.Board, error) {
+func (r *boardRepo) GetByID(ctx context.Context, id uint) (*domains.Board, error) {
 	var b entities.Board
 	err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", id).First(&b).Error
 	if err != nil {
@@ -56,7 +56,7 @@ func (r *boardRepo) GetByID(ctx context.Context, id uint) (*domain.Board, error)
 	return mappers.BoardEntityToDomain(&b), nil
 }
 
-func (r *boardRepo) Update(ctx context.Context, board *domain.Board) error {
+func (r *boardRepo) Update(ctx context.Context, board *domains.Board) error {
 	var existingBoard *entities.Board
 	if err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", board.ID).First(&existingBoard).Error; err != nil {
 		return err
