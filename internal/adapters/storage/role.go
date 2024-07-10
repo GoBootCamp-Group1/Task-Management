@@ -22,6 +22,7 @@ func NewRoleRepo(db *gorm.DB) ports.RoleRepository {
 
 var (
 	ErrRoleAlreadyExists = errors.New("board already exists")
+	ErrRoleNotFound      = errors.New("role not found")
 )
 
 func (r *roleRepository) Create(ctx context.Context, role *domains.Role) error {
@@ -81,4 +82,18 @@ func (r *roleRepository) Update(ctx context.Context, role *domains.Role) error {
 
 func (r *roleRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entities.Role{}, id).Error
+}
+
+func (r *roleRepository) GetByName(ctx context.Context, name string) (*domains.Role, error) {
+	var entity entities.Role
+	if err := r.db.WithContext(ctx).First(&entity, name).Error; err != nil {
+
+		return nil, err
+	}
+
+	if entity.ID == 0 {
+		return nil, ErrRoleNotFound
+	}
+
+	return mappers.RoleEntityToDomain(&entity), nil
 }

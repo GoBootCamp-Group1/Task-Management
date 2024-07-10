@@ -20,6 +20,10 @@ func NewBoardMemberRepo(db *gorm.DB) ports.BoardMemberRepo {
 	}
 }
 
+var (
+	ErrBoardMemberNotFound = errors.New("board member not found")
+)
+
 func (r *boardMemberRepo) Create(ctx context.Context, member *domains.BoardMember) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToBoardMemberEntity(member)
@@ -71,11 +75,15 @@ func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]
 }
 func (r *boardMemberRepo) GetBoardMember(ctx context.Context, boardID, userID uint) (*domains.BoardMember, error) {
 	var boardMember domains.BoardMember
-	err := r.db.WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Where("board_id = ? AND user_id = ?", boardID, userID).
-		First(&boardMember).Error
-	if err != nil {
+		First(&boardMember).Error; err != nil {
 		return nil, err
 	}
+
+	if boardMember.ID == 0 {
+		return nil, ErrBoardMemberNotFound
+	}
+
 	return &boardMember, nil
 }
