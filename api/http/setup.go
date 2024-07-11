@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/middlerwares"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/routes"
 	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
@@ -22,6 +23,8 @@ func Run(cfg config.Server, app *app.Container) {
 	routes.InitAuthRoutes(&api, app)
 	routes.InitBoardRoutes(&api, app, cfg)
 	routes.InitTaskRoutes(&api, app, cfg)
+	routes.InitColumnRoutes(&api, app, cfg)
+	routes.InitNotificationRoutes(&api, app, cfg)
 
 	// run server
 	err := fiberApp.Listen(fmt.Sprintf("%s:%d", cfg.Host, cfg.HttpPort))

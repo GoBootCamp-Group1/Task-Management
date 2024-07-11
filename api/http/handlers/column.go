@@ -26,6 +26,9 @@ type CreateColumnRequest struct {
 // @Description create a column
 // @Tags Column
 // @Accept json
+// @Produce json
+// @Param   body      body     CreateColumnRequest  true  "Create Column"
+// @Param   boardId      path     string  true  "Board ID"
 // @Success 200
 // @Failure 400
 // @Failure 500
@@ -69,10 +72,14 @@ func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error creating column: %v\n", err)
 			return SendError(c, err, 0)
 		}
-		log.InfoLog.Println("Column created successfully")
+		MsgColumnCreation := "Column created successfully"
+		log.InfoLog.Println(MsgColumnCreation)
 
 		// todo: sending response should handle better
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnCreation,
+			columnModel)
 	}
 }
 
@@ -112,6 +119,17 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// GetAllColumns get all columns of a board
+// @Summary Get Columns
+// @Description gets all columns of a bard
+// @Tags Column
+// @Produce json
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns [get]
+// @Security ApiKeyAuth
 func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		boardId, errParam := c.ParamsInt("boardId")
@@ -131,6 +149,20 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
+// UpdateColumn update a column
+// @Summary Update Column
+// @Description update a column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Param   name      body     string  true  "New Column name"
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id} [put]
+// @Security ApiKeyAuth
 func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
@@ -158,12 +190,30 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error updating column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Column updated successfully")
+		MsgColumnUpdate := "Column updated successfully"
+		log.InfoLog.Println(MsgColumnUpdate)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnUpdate,
+			input)
 	}
 }
 
+// MoveColumn move a column
+// @Summary Move Column
+// @Description move a column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Param   order_position      body     number  true  "new position of column [id]"
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id}/move [put]
+// @Security ApiKeyAuth
 func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		validate := validation.NewValidator()
@@ -191,12 +241,29 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error moving column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Column moved successfully")
+		MsgColumnMove := "Column moved successfully"
+		log.InfoLog.Println(MsgColumnMove)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnMove,
+			input)
 	}
 }
 
+// FinalColumn make a column as a final column
+// @Summary Final Column
+// @Description make a column as a final column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Success 200 {object} domains.Column
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id}/final [put]
+// @Security ApiKeyAuth
 func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
@@ -209,12 +276,28 @@ func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error changing final column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Final column changed successfully")
+		MsgFinalColumnChange := "Final column changed successfully"
+		log.InfoLog.Println(MsgFinalColumnChange)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgFinalColumnChange,
+			id)
 	}
 }
 
+// DeleteColumn delete a column
+// @Summary Delete Column
+// @Description delete a column
+// @Tags Column
+// @Accept json
+// @Produce json
+// @Param   id      path     string  true  "Column ID"
+// @Success 200
+// @Failure 404
+// @Failure 500
+// @Router /columns/{id} [delete]
+// @Security ApiKeyAuth
 func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, errParam := c.ParamsInt("id")
@@ -227,8 +310,12 @@ func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error deleting column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
-		log.InfoLog.Println("Column deleted successfully")
+		MsgColumnDelete := "Column deleted successfully"
+		log.InfoLog.Println(MsgColumnDelete)
 
-		return SendSuccessResponse(c, "column")
+		return SendSuccessResponse(
+			c,
+			MsgColumnDelete,
+			id)
 	}
 }
