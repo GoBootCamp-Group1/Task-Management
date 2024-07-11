@@ -25,6 +25,7 @@ func Run(cfg config.Server, app *app.Container) {
 	routes.InitTaskRoutes(&api, app, cfg)
 	routes.InitColumnRoutes(&api, app, cfg)
 	routes.InitNotificationRoutes(&api, app, cfg)
+	routes.InitRoleRoutes(&api, app, cfg)
 
 	// run server
 	err := fiberApp.Listen(fmt.Sprintf("%s:%d", cfg.Host, cfg.HttpPort))
