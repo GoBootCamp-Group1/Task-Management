@@ -8,14 +8,16 @@ import (
 )
 
 type TaskService struct {
-	repo     ports.TaskRepo
-	notifier ports.Notifier
+	repo        ports.TaskRepo
+	notifier    ports.Notifier
+	transaction ports.Transaction
 }
 
-func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier) *TaskService {
+func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, transaction ports.Transaction) *TaskService {
 	return &TaskService{
-		repo:     repo,
-		notifier: notifier,
+		repo:        repo,
+		notifier:    notifier,
+		transaction: transaction,
 	}
 }
 
@@ -45,13 +47,19 @@ func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageN
 
 func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*domains.Task, error) {
 	//TODO: check for permissions
-	//some business logic checks before creating task
-	//check role
-	//edit and move relate to assignee or maintainer and owner
-	//get parent id
-	errCreate := s.repo.Create(ctx, task)
-	if errCreate != nil {
-		return nil, fmt.Errorf("repository: can not create task: %w", errCreate)
+	err := s.transaction.Execute(ctx, func(txCtx context.Context) error {
+		errCreate := s.repo.Create(txCtx, task)
+		if errCreate != nil {
+			return fmt.Errorf("repository: can not create task: %w", errCreate)
+		}
+
+		//ANY OTHER TRANSACTIONAL OPERATION -> USE txCTX -> SEE TaskRepository Implementation for use case
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("repository: can not create task: %w", err)
 	}
 
 	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)

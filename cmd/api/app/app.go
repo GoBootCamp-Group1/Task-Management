@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/GoBootCamp-Group1/Task-Management/config"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/notifier"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
@@ -162,8 +163,9 @@ func (a *Container) setTaskService() {
 		return
 	}
 	taskRepository := storage.NewTaskRepo(a.dbConn)
+	transaction := adapters.NewGormTransaction(a.dbConn)
 	notifierAdapter := notifier.NewNotifierAdapter(a.notifier)
-	a.taskService = services.NewTaskService(taskRepository, notifierAdapter)
+	a.taskService = services.NewTaskService(taskRepository, notifierAdapter, transaction)
 }
 
 func (a *Container) setColumnService() {

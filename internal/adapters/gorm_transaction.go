@@ -6,26 +6,58 @@ import (
 	"gorm.io/gorm"
 )
 
-// GormTransaction is an implementation of the Transaction interface using GORM.
 type GormTransaction struct {
+	db *gorm.DB
 	tx *gorm.DB
 }
 
-// Begin starts a new transaction.
-func (g *GormTransaction) Begin(ctx context.Context) (ports.Transaction, error) {
-	tx := g.tx.Begin()
+type ValueKeyType string
+
+const (
+	CtxKey ValueKeyType = "CTX-KEY"
+)
+
+func (t *GormTransaction) GetTX() any {
+	return t.tx
+}
+
+func NewGormTransaction(db *gorm.DB) *GormTransaction {
+	return &GormTransaction{db: db}
+}
+
+func (t *GormTransaction) Begin(ctx context.Context) (ports.Transaction, error) {
+	tx := t.db.Begin()
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
-	return &GormTransaction{tx: tx}, nil
+	return &GormTransaction{db: t.db, tx: tx}, nil
 }
 
-// Commit commits the transaction.
-func (g *GormTransaction) Commit() error {
-	return g.tx.Commit().Error
+func (t *GormTransaction) Commit(ctx context.Context) error {
+	if t.tx != nil {
+		return t.tx.Commit().Error
+	}
+	return nil
 }
 
-// Rollback rolls back the transaction.
-func (g *GormTransaction) Rollback() error {
-	return g.tx.Rollback().Error
+func (t *GormTransaction) Rollback(ctx context.Context) error {
+	if t.tx != nil {
+		return t.tx.Rollback().Error
+	}
+	return nil
+}
+
+func (t *GormTransaction) Execute(ctx context.Context, fn func(ctx context.Context) error) error {
+	tx := t.db.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	transactionCtx := context.WithValue(ctx, CtxKey, tx)
+
+	if err := fn(transactionCtx); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }

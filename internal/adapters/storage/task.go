@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
@@ -18,6 +19,13 @@ func NewTaskRepo(db *gorm.DB) ports.TaskRepo {
 	return &taskRepo{
 		db: db,
 	}
+}
+
+func getDBFromContext(ctx context.Context, db *gorm.DB) *gorm.DB {
+	if tx, ok := ctx.Value(adapters.CtxKey).(*gorm.DB); ok {
+		return tx
+	}
+	return db
 }
 
 func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]*domains.Task, uint, error) {
@@ -64,19 +72,12 @@ func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uin
 }
 
 func (r *taskRepo) Create(ctx context.Context, task *domains.Task) error {
-	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		newTask := mappers.DomainToTaskEntity(task)
-		if err := tx.Create(&newTask).Error; err != nil {
-			return err
-		}
-		task.ID = newTask.ID
-		return nil
-	})
-
-	if err != nil {
+	newTask := mappers.DomainToTaskEntity(task)
+	db := getDBFromContext(ctx, r.db)
+	if err := db.WithContext(ctx).Create(&newTask).Error; err != nil {
 		return err
 	}
-
+	task.ID = newTask.ID
 	return nil
 }
 
