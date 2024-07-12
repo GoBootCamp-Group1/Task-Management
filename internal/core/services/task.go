@@ -71,20 +71,20 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 	return taskWithRelations, nil
 }
 
-func (s *TaskService) GetTaskByID(ctx context.Context, id uint) (*domains.Task, error) {
+func (s *TaskService) GetTaskByID(ctx context.Context, userID uint, boardID uint, id uint) (*domains.Task, error) {
 	task, errFetch := s.repo.GetByID(ctx, id)
 	if errFetch != nil {
 		return nil, fmt.Errorf("repository: can not fetch task #%d: %w", id, errFetch)
 	}
 
-	board, errFetchBoard := s.boardService.GetBoardByID(ctx, task.BoardID)
+	board, errFetchBoard := s.boardService.GetBoardByID(ctx, boardID)
 	if errFetchBoard != nil {
-		return nil, fmt.Errorf("board service: can not fetch board #%d: %w", task.BoardID, errFetchBoard)
+		return nil, fmt.Errorf("board service: can not fetch board #%d: %w", boardID, errFetchBoard)
 	}
 	//check permission
 	if board.IsPrivate {
 		//check permissions -> only board members can see task
-		hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, task.CreatedBy, task.BoardID)
+		hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 		if !hasAccess {
 			return nil, fmt.Errorf("access denied")
 		}
@@ -93,9 +93,9 @@ func (s *TaskService) GetTaskByID(ctx context.Context, id uint) (*domains.Task, 
 	return task, nil
 }
 
-func (s *TaskService) UpdateTask(ctx context.Context, task *domains.Task) (*domains.Task, error) {
+func (s *TaskService) UpdateTask(ctx context.Context, userID uint, boardID uint, task *domains.Task) (*domains.Task, error) {
 	//check permissions
-	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, task.CreatedBy, task.BoardID)
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, boardID)
 	if !hasAccess {
 		return nil, fmt.Errorf("access denied")
 	}
@@ -113,7 +113,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, task *domains.Task) (*doma
 	return taskWithRelations, nil
 }
 
-func (s *TaskService) DeleteTask(ctx context.Context, id uint) error {
+func (s *TaskService) DeleteTask(ctx context.Context, userID uint, id uint) error {
 	//load task
 	task, errFetch := s.repo.GetByID(ctx, id)
 	if errFetch != nil {
@@ -121,7 +121,7 @@ func (s *TaskService) DeleteTask(ctx context.Context, id uint) error {
 	}
 
 	//check permissions
-	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, task.CreatedBy, task.BoardID)
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, task.BoardID)
 	if !hasAccess {
 		return fmt.Errorf("access denied")
 	}
