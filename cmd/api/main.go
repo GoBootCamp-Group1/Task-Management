@@ -1,13 +1,17 @@
 package main
 
 import (
-	http_server "github.com/GoBootCamp-Group1/Task-Management/api/http"
-	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
-	"github.com/GoBootCamp-Group1/Task-Management/config"
+	"flag"
 	"log"
 	"os"
 	"path/filepath"
+
+	http_server "github.com/GoBootCamp-Group1/Task-Management/api/http"
+	"github.com/GoBootCamp-Group1/Task-Management/cmd/api/app"
+	"github.com/GoBootCamp-Group1/Task-Management/config"
 )
+
+var configPath = flag.String("config", "", "Configuration Path")
 
 //	@title			Task Manager
 //	@version		1.0
@@ -36,18 +40,22 @@ func main() {
 }
 
 func readConfig() config.Config {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
+	flag.Parse()
+
+	if cfgPathEnv := os.Getenv("APP_CONFIG_PATH"); len(cfgPathEnv) > 0 {
+		*configPath = cfgPathEnv
 	}
 
-	configPath := filepath.Join(dir, "config.yaml")
+	if len(*configPath) == 0 {
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	if len(configPath) == 0 {
-		log.Fatal("configuration file not found")
+		*configPath = filepath.Join(dir, "config.yaml")
 	}
 
-	cfg := config.MustReadStandard(configPath)
+	cfg := config.MustReadStandard(*configPath)
 
 	return cfg
 }
