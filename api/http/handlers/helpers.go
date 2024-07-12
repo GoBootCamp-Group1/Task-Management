@@ -20,10 +20,13 @@ var (
 type ServiceFactory[T any] func(context.Context) T
 
 type Response struct {
-	Success bool   `json:"success"`
-	Status  int    `json:"status"`
-	Data    any    `json:"data,omitempty"`
-	Message string `json:"message,omitempty"`
+	Success  bool   `json:"success"`
+	Status   int    `json:"status"`
+	Data     any    `json:"data,omitempty"`
+	Page     uint   `json:"page,omitempty"`
+	PageSize uint   `json:"page_size,omitempty"`
+	Total    uint   `json:"total,omitempty"`
+	Message  string `json:"message,omitempty"`
 }
 
 func SendSuccessResponse(c *fiber.Ctx, message string, data any) error {
@@ -32,6 +35,19 @@ func SendSuccessResponse(c *fiber.Ctx, message string, data any) error {
 		Status:  fiber.StatusOK,
 		Data:    data,
 		Message: message,
+	}
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func SendSuccessPaginateResponse(c *fiber.Ctx, message string, data any, page uint, pageSize uint, total uint) error {
+	response := Response{
+		Success:  true,
+		Status:   fiber.StatusOK,
+		Data:     data,
+		Page:     page,
+		PageSize: pageSize,
+		Total:    total,
+		Message:  message,
 	}
 	return c.Status(fiber.StatusOK).JSON(response)
 }
