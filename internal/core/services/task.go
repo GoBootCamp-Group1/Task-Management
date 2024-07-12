@@ -21,17 +21,21 @@ func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *
 	}
 }
 
-func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageNumber uint, pageSize uint) ([]*domains.Task, uint, error) {
-	//TODO: check for permissions
-	//input := ports.NotificationInput{
-	//	Type:    "test",
-	//	Message: "some data",
-	//}
-	//err := s.notifier.SendInAppNotification(ctx, 1, input)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return nil, 0, err
-	//}
+func (s *TaskService) GetTasksByBoardID(ctx context.Context, userID uint, boardID uint, pageNumber uint, pageSize uint) ([]domains.Task, uint, error) {
+	//check permission
+	board, errFetchBoard := s.boardService.GetBoardByID(ctx, boardID)
+	if errFetchBoard != nil {
+		return nil, 0, fmt.Errorf("board service: can not fetch board #%d: %w", boardID, errFetchBoard)
+	}
+
+	if board.IsPrivate {
+		//check permissions -> only board members can see task
+		hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
+		if !hasAccess {
+			return nil, 0, fmt.Errorf("access denied")
+		}
+	}
+
 	//pagination calculate
 	limit := pageSize
 	offset := (pageNumber - 1) * pageSize
@@ -68,16 +72,34 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 }
 
 func (s *TaskService) GetTaskByID(ctx context.Context, id uint) (*domains.Task, error) {
-	//TODO: check for permissions
 	task, errFetch := s.repo.GetByID(ctx, id)
 	if errFetch != nil {
 		return nil, fmt.Errorf("repository: can not fetch task #%d: %w", id, errFetch)
 	}
+
+	board, errFetchBoard := s.boardService.GetBoardByID(ctx, task.BoardID)
+	if errFetchBoard != nil {
+		return nil, fmt.Errorf("board service: can not fetch board #%d: %w", task.BoardID, errFetchBoard)
+	}
+	//check permission
+	if board.IsPrivate {
+		//check permissions -> only board members can see task
+		hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, task.CreatedBy, task.BoardID)
+		if !hasAccess {
+			return nil, fmt.Errorf("access denied")
+		}
+	}
+
 	return task, nil
 }
 
 func (s *TaskService) UpdateTask(ctx context.Context, task *domains.Task) (*domains.Task, error) {
-	//TODO: check for permissions
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, task.CreatedBy, task.BoardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
 	errUpdate := s.repo.Update(ctx, task)
 	if errUpdate != nil {
 		return nil, fmt.Errorf("repository: can not update task: %w", errUpdate)
@@ -92,7 +114,17 @@ func (s *TaskService) UpdateTask(ctx context.Context, task *domains.Task) (*doma
 }
 
 func (s *TaskService) DeleteTask(ctx context.Context, id uint) error {
-	//TODO: check for permissions
+	//load task
+	task, errFetch := s.repo.GetByID(ctx, id)
+	if errFetch != nil {
+		return fmt.Errorf("repository: can not fetch task #%d: %w", id, errFetch)
+	}
+
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, task.CreatedBy, task.BoardID)
+	if !hasAccess {
+		return fmt.Errorf("access denied")
+	}
 	errDelete := s.repo.Delete(ctx, id)
 	if errDelete != nil {
 		return fmt.Errorf("repository: can not delete task %w", errDelete)

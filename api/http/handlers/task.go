@@ -6,6 +6,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers/presenter"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/gofiber/fiber/v2"
@@ -175,10 +176,12 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
+		claims := c.Locals(jwt.UserClaimKey).(*jwt.UserClaims)
+
 		// init variables for pagination
 		page, pageSize := PageAndPageSize(c)
 
-		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), uint(boardID), uint(page), uint(pageSize))
+		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), claims.UserID, uint(boardID), uint(page), uint(pageSize))
 		if err != nil {
 			log.ErrorLog.Printf("Error gettings tasks: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
@@ -192,7 +195,7 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 		//generate response data
 		taskPresenters := make([]*presenter.TaskPresenter, len(tasks))
 		for i, task := range tasks {
-			taskPresenters[i] = presenter.NewTaskPresenter(task)
+			taskPresenters[i] = presenter.NewTaskPresenter(&task)
 		}
 		log.InfoLog.Println("Tasks loaded successfully")
 
