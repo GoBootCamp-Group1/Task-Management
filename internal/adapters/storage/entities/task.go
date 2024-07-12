@@ -28,3 +28,15 @@ type Task struct {
 	Parent   *Task
 	Assignee *User
 }
+
+//// BeforeUpdate hook
+//func (task *Task) BeforeUpdate(tx *gorm.DB) (err error) {
+//	var oldTask Task
+//	tx.Model(&Task{}).Where("id = ?", task.ID).First(&oldTask)
+//
+//	if oldTask.AssigneeID != task.AssigneeID {
+//		fmt.Println("AssigneeID has been changed!")
+//	}
+//
+//	return nil
+//}
