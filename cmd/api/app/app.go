@@ -163,7 +163,7 @@ func (a *Container) setTaskService() {
 	}
 	taskRepository := storage.NewTaskRepo(a.dbConn)
 	notifierAdapter := notifier.NewNotifierAdapter(a.notifier)
-	a.taskService = services.NewTaskService(taskRepository, notifierAdapter)
+	a.taskService = services.NewTaskService(taskRepository, notifierAdapter, a.boardService)
 }
 
 func (a *Container) setColumnService() {
