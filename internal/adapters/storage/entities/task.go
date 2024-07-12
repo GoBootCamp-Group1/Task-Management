@@ -25,8 +25,8 @@ type Task struct {
 	Board    Board  `gorm:"foreignKey:BoardID"`
 	Creator  User   `gorm:"foreignKey:CreatedBy"`
 	Column   Column `gorm:"foreignKey:ColumnID"`
-	Parent   *Task
-	Assignee *User
+	Parent   *Task  `gorm:"foreignKey:ParentID"`
+	Assignee *User  `gorm:"foreignKey:AssigneeID"`
 }
 
 //// BeforeUpdate hook
