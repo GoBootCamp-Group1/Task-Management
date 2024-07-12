@@ -8,14 +8,16 @@ import (
 )
 
 type TaskService struct {
-	repo     ports.TaskRepo
-	notifier ports.Notifier
+	repo         ports.TaskRepo
+	notifier     ports.Notifier
+	boardService *BoardService
 }
 
-func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier) *TaskService {
+func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService) *TaskService {
 	return &TaskService{
-		repo:     repo,
-		notifier: notifier,
+		repo:         repo,
+		notifier:     notifier,
+		boardService: boardService,
 	}
 }
 
@@ -44,16 +46,19 @@ func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageN
 }
 
 func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*domains.Task, error) {
-	//TODO: check for permissions
-	//some business logic checks before creating task
-	//check role
-	//edit and move relate to assignee or maintainer and owner
-	//get parent id
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, task.CreatedBy, task.BoardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	//create task
 	errCreate := s.repo.Create(ctx, task)
 	if errCreate != nil {
 		return nil, fmt.Errorf("repository: can not create task: %w", errCreate)
 	}
 
+	//load task
 	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)
 	if errFetch != nil {
 		return nil, fmt.Errorf("repository: can not fetch task #%d: %w", task.ID, errFetch)

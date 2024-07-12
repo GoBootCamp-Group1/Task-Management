@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 )
@@ -75,4 +76,19 @@ func (s *BoardService) GetRoleByUserIDAndBoardId(ctx context.Context, userID, bo
 	}
 
 	return role, nil
+}
+
+func (s *BoardService) HasRequiredBoardAccess(ctx context.Context, roleW domains.RoleW, userID, boardID uint) (bool, error) {
+	r, errGet := s.GetRoleByUserIDAndBoardId(ctx, userID, boardID)
+	if errGet != nil {
+		return false, errGet
+	}
+	roleWeight, errParse := domains.ParseRole(r.Name)
+	if errParse != nil {
+		return false, errParse
+	}
+	if roleWeight > roleW {
+		return false, fmt.Errorf("access denied")
+	}
+	return true, nil
 }
