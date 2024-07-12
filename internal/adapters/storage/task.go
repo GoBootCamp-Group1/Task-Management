@@ -28,6 +28,7 @@ func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uin
 		Where("board_id = ?", boardID).
 		Preload("Board").
 		Preload("Column").
+		Preload("Assignee").
 		Preload("Creator")
 
 	//calculate total entities
@@ -83,6 +84,7 @@ func (r *taskRepo) GetByID(ctx context.Context, id uint) (*domains.Task, error) 
 		Preload("Board").
 		Preload("Creator").
 		Preload("Column").
+		Preload("Assignee").
 		//TODO:additional relations
 		First(&task).Error
 	if err != nil {

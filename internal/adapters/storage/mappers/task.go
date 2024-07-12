@@ -26,6 +26,17 @@ func DomainToTaskEntity(model *domains.Task) *entities.Task {
 }
 
 func TaskEntityToDomain(entity *entities.Task) *domains.Task {
+
+	var assignee *domains.User
+	if entity.AssigneeID != nil {
+		assignee = UserEntityToDomain(entity.Assignee)
+	}
+
+	var parent *domains.Task
+	if entity.ParentID != nil {
+		parent = TaskEntityToDomain(entity.Parent)
+	}
+
 	return &domains.Task{
 		ID:        entity.ID,
 		CreatedAt: entity.CreatedAt,
@@ -44,9 +55,11 @@ func TaskEntityToDomain(entity *entities.Task) *domains.Task {
 		StoryPoint:    entity.StoryPoint,
 		Additional:    entity.Additional,
 
-		Board:   BoardEntityToDomain(&entity.Board),
-		Creator: UserEntityToDomain(&entity.Creator),
-		Column:  ColumnEntityToDomain(&entity.Column),
+		Board:    BoardEntityToDomain(&entity.Board),
+		Creator:  UserEntityToDomain(&entity.Creator),
+		Column:   ColumnEntityToDomain(&entity.Column),
+		Parent:   parent,
+		Assignee: assignee,
 	}
 }
 

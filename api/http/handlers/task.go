@@ -296,6 +296,11 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 			log.ErrorLog.Printf("Error updating task: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
+
+		if updatedTask == nil {
+			return SendError(c, ErrTaskNotFound, fiber.StatusNotFound)
+		}
+
 		log.InfoLog.Println("Task updated successfully")
 
 		return SendSuccessResponse(

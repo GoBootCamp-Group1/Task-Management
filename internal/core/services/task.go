@@ -68,6 +68,19 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 		return nil, fmt.Errorf("repository: can not fetch task #%d: %w", task.ID, errFetch)
 	}
 
+	//Send notification to Assignee if exists
+	if taskWithRelations.Assignee != nil {
+		//Send notification
+		input := ports.NotificationInput{
+			Type:    ports.NewTaskAssignedNotification,
+			Message: fmt.Sprintf("hey, %s. new task assigned.", taskWithRelations.Assignee.Name),
+		}
+		err := s.notifier.SendInAppNotification(ctx, taskWithRelations.Assignee.ID, input)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return taskWithRelations, nil
 }
 
