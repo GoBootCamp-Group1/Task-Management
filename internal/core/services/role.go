@@ -2,8 +2,12 @@ package services
 
 import (
 	"context"
+	"errors"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"log"
+	"time"
 )
 
 type RoleService struct {
@@ -31,46 +35,66 @@ func (s *RoleService) GetRoleById(ctx context.Context, id uint) (*domains.Role, 
 }
 
 func (s *RoleService) InitRolesInDb(ctx context.Context) error {
-	// check if roles exists in db already
 
 	maintainerRoleEnum, _ := domains.ParseRole("Maintainer")
 	editorRoleEnum, _ := domains.ParseRole("Editor")
 	ownerRoleEnum, _ := domains.ParseRole("Owner")
 	viewerRoleEnum, _ := domains.ParseRole("Viewer")
 
-	maintainerRole := domains.Role{
-		ID:          0,
-		Name:        maintainerRoleEnum.String(),
-		Description: "its maintainer role",
-		Weight:      int(maintainerRoleEnum),
+	roles := []domains.Role{
+		{
+			Name:        maintainerRoleEnum.String(),
+			Description: "its maintainer role",
+			Weight:      int(maintainerRoleEnum),
+		},
+		{
+			Name:        editorRoleEnum.String(),
+			Description: "its editor role",
+			Weight:      int(editorRoleEnum),
+		},
+		{
+			Name:        ownerRoleEnum.String(),
+			Description: "its owner role",
+			Weight:      int(ownerRoleEnum),
+		},
+		{
+			Name:        viewerRoleEnum.String(),
+			Description: "its viewer role",
+			Weight:      int(viewerRoleEnum),
+		},
 	}
-	editorRole := domains.Role{
-		ID:          0,
-		Name:        editorRoleEnum.String(),
-		Description: "its maintainer role",
-		Weight:      int(editorRoleEnum),
-	}
-	ownerRole := domains.Role{
-		ID:          0,
-		Name:        ownerRoleEnum.String(),
-		Description: "its maintainer role",
-		Weight:      int(ownerRoleEnum),
-	}
-	viewerRole := domains.Role{
-		ID:          0,
-		Name:        viewerRoleEnum.String(),
-		Description: "its maintainer role",
-		Weight:      int(viewerRoleEnum),
-	}
-
-	roles := []domains.Role{maintainerRole, editorRole, ownerRole, viewerRole}
+	var lastErr error
 	for _, role := range roles {
-		if err := s.CreateRole(ctx, &role); err != nil {
-			// check if row already exists, then continue the for,
-			//because if it exists we do not want to throw error or re-create
-			return err
+		err := createRoleWithRetry(s, role, ctx)
+		if err != nil {
+			lastErr = err
+			log.Printf("Failed to create role %s: %v", role.Name, err)
+		}
+	}
+	return lastErr
+}
+func createRoleWithRetry(s *RoleService, role domains.Role, ctx context.Context) error {
+
+	const maxRetries = 3
+	var lastErr error
+
+	for i := 0; i < maxRetries; i++ {
+		err := s.CreateRole(ctx, &role)
+		if err != nil {
+			if errors.Is(err, storage.ErrRoleAlreadyExists) {
+				// Role already exists, no need to retry
+				return nil
+			}
+			// Log the error and prepare for retry
+			log.Printf("Attempt %d: Failed to create role %s: %v", i+1, role.Name, err)
+			lastErr = err
+			time.Sleep(time.Second * time.Duration(i+1)) // Exponential backoff
+		} else {
+			// Role created successfully
+			return nil
 		}
 	}
 
-	return nil
+	// If we exit the loop, it means all retries failed
+	return lastErr
 }
