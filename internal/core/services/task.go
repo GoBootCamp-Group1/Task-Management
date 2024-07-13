@@ -6,6 +6,7 @@ import (
 
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 )
 
 type TaskService struct {
@@ -209,4 +210,59 @@ func (s *TaskService) GetTaskChildren(ctx context.Context, userID uint, boardID 
 	}
 
 	return childrenTasks, nil
+}
+
+func (s *TaskService) AddTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
+
+	existingDependencies, err := s.repo.GetAllTaskDependencies(ctx)
+	if err != nil {
+		log.ErrorLog.Printf("Error fetching dependencies from database: %v", err)
+	}
+
+	// Create a map to store adjacency list representation of the graph
+	graph := make(map[uint][]uint)
+	for _, dep := range existingDependencies {
+		graph[dep.TaskID] = append(graph[dep.TaskID], dep.DependentTaskID)
+	}
+
+	// Start the cycle detection from the taskID and check if it reaches dependentTaskID
+	if hasCycle(graph, taskID, dependentTaskID) {
+		return fmt.Errorf("adding this dependency would create a cycle")
+	}
+
+	return s.repo.AddTaskDependency(ctx, taskID, dependentTaskID)
+}
+func (s *TaskService) RemoveTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
+	return s.repo.RemoveTaskDependency(ctx, taskID, dependentTaskID)
+}
+func (s *TaskService) GetTaskDependencies(ctx context.Context, taskID uint) ([]domains.TaskDependency, error) {
+	taskDependencies, err := s.repo.GetTaskDependencies(ctx, taskID)
+	if err != nil {
+		return nil, err
+	}
+	return taskDependencies, nil
+}
+
+// hasCycle checks if adding tid -> dtid would create a cycle in the graph
+func hasCycle(graph map[uint][]uint, tid, dtid uint) bool {
+	visited := make(map[uint]bool)
+	return isReachable(graph, visited, tid, dtid)
+}
+
+// isReachable checks if dtid is reachable from tid using DFS
+func isReachable(graph map[uint][]uint, visited map[uint]bool, current, target uint) bool {
+	if current == target {
+		return true
+	}
+
+	visited[current] = true
+	for _, neighbor := range graph[current] {
+		if !visited[neighbor] && isReachable(graph, visited, neighbor, target) {
+			return true
+		} else if visited[neighbor] && neighbor == target {
+			// Found a cycle
+			return true
+		}
+	}
+	return false
 }
