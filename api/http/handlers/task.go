@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers/presenter"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
@@ -455,7 +456,8 @@ func GetTaskDependencies(taskService *services.TaskService) fiber.Handler {
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
 
-		log.InfoLog.Printf("Retrieved dependencies for task #%d", taskID)
-		return c.JSON(taskDependencies)
+		msg := fmt.Sprintf("Retrieved dependencies for task #%d", taskID)
+		log.InfoLog.Println(msg)
+		return SendSuccessResponse(c, msg, taskDependencies)
 	}
 }
