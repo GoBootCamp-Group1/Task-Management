@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
+
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"github.com/gofiber/fiber/v2"
 )

@@ -8,6 +8,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -16,8 +17,8 @@ type columnRepo struct {
 }
 
 var (
-	ErrColumnAlreadyExists     = errors.New("column already exists")
-	ErrOrderPositionOutOfRange = errors.New("order position is out of range")
+	ErrColumnAlreadyExists     = "column already exists"
+	ErrOrderPositionOutOfRange = "order position is out of range"
 )
 
 func NewColumnRepo(db *gorm.DB) ports.ColumnRepo {
@@ -33,16 +34,16 @@ func (r *columnRepo) Create(ctx context.Context, column *domains.Column) error {
 
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: column.BoardID, Name: column.Name}).First(&existingColumn).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if existingColumn.ID != 0 {
-		return ErrColumnAlreadyExists
+		return fiber.NewError(fiber.StatusBadRequest, ErrColumnAlreadyExists)
 	}
 
 	err = r.db.WithContext(ctx).Model(&entities.Column{}).Order("order_position DESC").First(&lastColumn).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	if lastColumn.ID != 0 {
 		lastPosition = lastColumn.OrderPosition + 1
@@ -60,7 +61,7 @@ func (r *columnRepo) Create(ctx context.Context, column *domains.Column) error {
 		entity.OrderPosition = lastPosition
 
 		if err := tx.WithContext(ctx).Create(&entity).Error; err != nil {
-			return err
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
 		column.ID = entity.ID
@@ -74,20 +75,36 @@ func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, err
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: id}}).First(&column).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, fiber.NewError(fiber.StatusNotFound, "Column not found")
 		}
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return mappers.ColumnEntityToDomain(&column), nil
 }
 
-func (r *columnRepo) GetAll(ctx context.Context, boardId uint) ([]*domains.Column, error) {
+func (r *columnRepo) GetAll(ctx context.Context, boardId uint, limit int, offset int) ([]*domains.Column, error) {
 	var entitieColumns []entities.Column
 
-	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC").Find(&entitieColumns).Error
+	query := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC")
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if offset > 0 {
+		query = query.Offset(offset)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	err := query.Find(&entitieColumns).Error
+
 	if err != nil {
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	columns := make([]*domains.Column, len(entitieColumns))
@@ -103,7 +120,10 @@ func (r *columnRepo) Update(ctx context.Context, updateColumn *domains.ColumnUpd
 	var foundColumn *entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: updateColumn.ID}}).First(&foundColumn).Error
 	if err != nil {
-		return err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "Column not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	foundColumn.Name = updateColumn.Name
@@ -114,12 +134,12 @@ func (r *columnRepo) Update(ctx context.Context, updateColumn *domains.ColumnUpd
 func (r *columnRepo) Move(ctx context.Context, moveColumn *domains.ColumnMove) error {
 	var foundColumn *entities.Column
 	var lastColumn entities.Column
-	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: moveColumn.ID}}).First(&foundColumn).Error
+	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where("id = ?", moveColumn.ID).First(&foundColumn).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
+			return fiber.NewError(fiber.StatusNotFound, "Column not found")
 		}
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if foundColumn.OrderPosition == moveColumn.OrderPosition {
@@ -128,14 +148,13 @@ func (r *columnRepo) Move(ctx context.Context, moveColumn *domains.ColumnMove) e
 
 	err = r.db.WithContext(ctx).Model(&entities.Column{}).Order("order_position DESC").First(&lastColumn).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if moveColumn.OrderPosition < 1 || moveColumn.OrderPosition > lastColumn.OrderPosition {
-		return ErrOrderPositionOutOfRange
+		return fiber.NewError(fiber.StatusBadRequest, ErrOrderPositionOutOfRange)
 	}
 
-	var allColumns []*entities.Column
 	var condition string
 	var unit int
 
@@ -147,30 +166,24 @@ func (r *columnRepo) Move(ctx context.Context, moveColumn *domains.ColumnMove) e
 		unit = -1
 	}
 
-	err = r.db.WithContext(ctx).Model(&entities.Column{}).Where(condition, foundColumn.BoardID, moveColumn.OrderPosition, foundColumn.OrderPosition).Order("order_position ASC").Find(&allColumns).Error
+	err = r.db.WithContext(ctx).Model(&entities.Column{}).Where(condition, foundColumn.BoardID, moveColumn.OrderPosition, foundColumn.OrderPosition).Updates(map[string]interface{}{"order_position": gorm.Expr("order_position + ?", unit)}).Error
 	if err != nil {
-		return err
-	}
-	for _, col := range allColumns {
-		col.OrderPosition += unit
-		err = r.db.WithContext(ctx).Save(&col).Error
-		if err != nil {
-			return err
-		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	foundColumn.OrderPosition = moveColumn.OrderPosition
-	return r.db.WithContext(ctx).Save(&foundColumn).Error
+	err = r.db.WithContext(ctx).Save(&foundColumn).Error
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return nil
 }
 
 func (r *columnRepo) Final(ctx context.Context, id uint) error {
 	var foundColumn *entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: id}}).First(&foundColumn).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if foundColumn.IsFinal {
@@ -179,14 +192,22 @@ func (r *columnRepo) Final(ctx context.Context, id uint) error {
 
 	err = r.db.Model(&entities.Column{}).Where(&entities.Column{BoardID: foundColumn.BoardID}).Update("is_final", false).Error
 	if err != nil {
-		return nil
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	foundColumn.IsFinal = true
 
-	return r.db.WithContext(ctx).Save(&foundColumn).Error
+	err = r.db.WithContext(ctx).Save(&foundColumn).Error
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return nil
 }
 
 func (r *columnRepo) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Delete(&entities.Column{}, id).Error
+	err := r.db.WithContext(ctx).Delete(&entities.Column{}, id).Error
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return nil
 }

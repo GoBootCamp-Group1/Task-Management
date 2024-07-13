@@ -32,18 +32,18 @@ func GetNotificationByID(NotificationService *services.NotificationService) fibe
 		userID, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		Notification, err := NotificationService.GetNotificationByID(c.Context(), id, userID)
 		if err != nil {
 			log.ErrorLog.Printf("Error getting Notification: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if Notification == nil {
 			log.ErrorLog.Printf("Error getting Notification: %v\n", ErrNotificationNotFound)
-			return SendError(c, ErrNotificationNotFound, fiber.StatusNotFound)
+			return OldSendError(c, ErrNotificationNotFound, fiber.StatusNotFound)
 		}
 		log.InfoLog.Println("Notification loaded successfully")
 
@@ -75,18 +75,18 @@ func GetAllNotifications(NotificationService *services.NotificationService) fibe
 		userID, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		Notifications, total, err := NotificationService.GetAllNotificationsList(c.Context(), userID, uint(page), uint(pageSize))
 		if err != nil {
 			log.ErrorLog.Printf("Error gettings Notifications: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if len(Notifications) == 0 {
 			log.ErrorLog.Printf("Error getting Notifications: %v\n", ErrNoNotificationFound)
-			return SendError(c, ErrNoNotificationFound, fiber.StatusNotFound)
+			return OldSendError(c, ErrNoNotificationFound, fiber.StatusNotFound)
 		}
 
 		//generate response data
@@ -127,18 +127,18 @@ func GetUnreadNotifications(NotificationService *services.NotificationService) f
 		userID, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		Notifications, total, err := NotificationService.GetUnReadNotificationsList(c.Context(), userID, uint(page), uint(pageSize))
 		if err != nil {
 			log.ErrorLog.Printf("Error gettings Notifications: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if len(Notifications) == 0 {
 			log.ErrorLog.Printf("Error getting Notifications: %v\n", ErrNoNotificationFound)
-			return SendError(c, ErrNoNotificationFound, fiber.StatusNotFound)
+			return OldSendError(c, ErrNoNotificationFound, fiber.StatusNotFound)
 		}
 
 		//generate response data
@@ -178,13 +178,13 @@ func ReadNotification(NotificationService *services.NotificationService) fiber.H
 		userID, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		updatedNotification, err := NotificationService.ReadNotification(c.Context(), id, userID)
 		if err != nil {
 			log.ErrorLog.Printf("Error updating Notification: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		log.InfoLog.Println("Notification updated successfully")
 
@@ -215,13 +215,13 @@ func UnReadNotification(NotificationService *services.NotificationService) fiber
 		userID, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		updatedNotification, err := NotificationService.UnReadNotification(c.Context(), id, userID)
 		if err != nil {
 			log.ErrorLog.Printf("Error updating Notification: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		log.InfoLog.Println("Notification updated successfully")
 
@@ -251,13 +251,13 @@ func DeleteNotification(NotificationService *services.NotificationService) fiber
 		userID, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		err = NotificationService.DeleteNotification(c.Context(), id, userID)
 		if err != nil {
 			log.ErrorLog.Printf("Error deleting Notification: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		log.InfoLog.Println("Notification deleted successfully")
 

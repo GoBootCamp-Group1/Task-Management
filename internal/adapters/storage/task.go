@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
@@ -20,7 +21,7 @@ func NewTaskRepo(db *gorm.DB) ports.TaskRepo {
 	}
 }
 
-func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]*domains.Task, uint, error) {
+func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit int, offset int) ([]*domains.Task, uint, error) {
 	var taskEntities []*entities.Task
 
 	query := r.db.WithContext(ctx).
@@ -38,12 +39,12 @@ func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uin
 
 	//apply offset
 	if offset > 0 {
-		query = query.Offset(int(offset))
+		query = query.Offset(offset)
 	}
 
 	//apply limit
 	if limit > 0 {
-		query = query.Limit(int(limit))
+		query = query.Limit(limit)
 	}
 
 	//fetch entities

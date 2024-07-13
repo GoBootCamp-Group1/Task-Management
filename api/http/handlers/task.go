@@ -3,13 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"time"
+
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers/presenter"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/gofiber/fiber/v2"
-	"time"
 )
 
 type TaskRequest struct {
@@ -61,26 +62,26 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
-			return SendError(c, errUserID, fiber.StatusInternalServerError)
+			return OldSendError(c, errUserID, fiber.StatusInternalServerError)
 		}
 
 		//Get Board ID
 		boardID, errBoardID := c.ParamsInt("boardID")
 		if errBoardID != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", errBoardID)
-			return SendError(c, ErrInvalidBoardIDParam, fiber.StatusBadRequest)
+			return OldSendError(c, ErrInvalidBoardIDParam, fiber.StatusBadRequest)
 		}
 
 		//datetime parse
 		startDateTime, errInvalidStartDt := time.Parse(dateTimeLayout, input.StartDateTime)
 		if errInvalidStartDt != nil {
 			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidStartDt)
-			return SendError(c, ErrInvalidStartDatetimeLayout, fiber.StatusBadRequest)
+			return OldSendError(c, ErrInvalidStartDatetimeLayout, fiber.StatusBadRequest)
 		}
 		endDateTime, errInvalidEndDt := time.Parse(dateTimeLayout, input.EndDateTime)
 		if errInvalidEndDt != nil {
 			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidEndDt)
-			return SendError(c, ErrInvalidEndDatetimeLayout, fiber.StatusBadRequest)
+			return OldSendError(c, ErrInvalidEndDatetimeLayout, fiber.StatusBadRequest)
 		}
 
 		taskModel := domains.Task{
@@ -101,7 +102,7 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 		createdTask, err := taskService.CreateTask(c.Context(), &taskModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error creating task: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		log.InfoLog.Println("Task created successfully")
 
@@ -131,18 +132,18 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		task, err := taskService.GetTaskByID(c.Context(), uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error getting task: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if task == nil {
 			log.ErrorLog.Printf("Error getting task: %v\n", ErrTaskNotFound)
-			return SendError(c, ErrTaskNotFound, fiber.StatusNotFound)
+			return OldSendError(c, ErrTaskNotFound, fiber.StatusNotFound)
 		}
 		log.InfoLog.Println("Task loaded successfully")
 
@@ -172,21 +173,21 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 		boardID, err := c.ParamsInt("boardID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		// init variables for pagination
 		page, pageSize := PageAndPageSize(c)
 
-		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), uint(boardID), uint(page), uint(pageSize))
+		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), uint(boardID), page, pageSize)
 		if err != nil {
 			log.ErrorLog.Printf("Error gettings tasks: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		if len(tasks) == 0 {
 			log.ErrorLog.Printf("Error getting tasks: %v\n", ErrNoTaskFound)
-			return SendError(c, ErrNoTaskFound, fiber.StatusNotFound)
+			return OldSendError(c, ErrNoTaskFound, fiber.StatusNotFound)
 		}
 
 		//generate response data
@@ -232,19 +233,19 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		//datetime parse
 		startDateTime, errInvalidStartDt := time.Parse(dateTimeLayout, input.StartDateTime)
 		if errInvalidStartDt != nil {
 			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidStartDt)
-			return SendError(c, ErrInvalidStartDatetimeLayout, fiber.StatusBadRequest)
+			return OldSendError(c, ErrInvalidStartDatetimeLayout, fiber.StatusBadRequest)
 		}
 		endDateTime, errInvalidEndDt := time.Parse(dateTimeLayout, input.EndDateTime)
 		if errInvalidEndDt != nil {
 			log.ErrorLog.Printf("Error invalid time: %v\n", errInvalidStartDt)
-			return SendError(c, ErrInvalidEndDatetimeLayout, fiber.StatusBadRequest)
+			return OldSendError(c, ErrInvalidEndDatetimeLayout, fiber.StatusBadRequest)
 		}
 
 		taskModel := domains.Task{
@@ -264,7 +265,7 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 		updatedTask, err := taskService.UpdateTask(c.Context(), &taskModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error updating task: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		log.InfoLog.Println("Task updated successfully")
 
@@ -291,13 +292,13 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err = taskService.DeleteTask(c.Context(), uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error deleting task: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		log.InfoLog.Println("Task deleted successfully")
 

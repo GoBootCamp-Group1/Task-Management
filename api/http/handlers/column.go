@@ -138,7 +138,9 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam, fiber.StatusBadRequest)
 		}
 
-		columns, err := columnService.GetAllColumns(c.Context(), uint(boardId))
+		page, pageSize := PageAndPageSize(c)
+
+		columns, err := columnService.GetAllColumns(c.Context(), uint(boardId), page, pageSize)
 		if err != nil {
 			log.ErrorLog.Printf("Error getting all columns: %v\n", err)
 			return SendError(c, err, 0)

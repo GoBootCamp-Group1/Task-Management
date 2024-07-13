@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 )
@@ -21,7 +22,7 @@ func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *
 	}
 }
 
-func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageNumber uint, pageSize uint) ([]*domains.Task, uint, error) {
+func (s *TaskService) GetTasksByBoardID(ctx context.Context, boardID uint, pageNumber int, pageSize int) ([]*domains.Task, uint, error) {
 	//TODO: check for permissions
 	//input := ports.NotificationInput{
 	//	Type:    "test",

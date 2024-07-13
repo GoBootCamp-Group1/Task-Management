@@ -2,11 +2,12 @@ package middlerwares
 
 import (
 	"errors"
+	"strings"
+	"time"
+
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
-	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -22,13 +23,13 @@ func Auth(secret []byte) fiber.Handler {
 		h := c.GetReqHeaders()["Authorization"]
 		if len(h) == 0 {
 			log.ErrorLog.Printf("Error authenticating: %v\n", ErrNoAuthToken)
-			return handlers.SendError(c, ErrNoAuthToken, fiber.StatusUnauthorized)
+			return handlers.OldSendError(c, ErrNoAuthToken, fiber.StatusUnauthorized)
 		}
 
 		// Check if the Authorization header starts with "Bearer "
 		if !strings.HasPrefix(h[0], "Bearer ") {
 			log.ErrorLog.Printf("Error malformed authentication token: %v\n", ErrMalformedAuthToken)
-			return handlers.SendError(c, ErrMalformedAuthToken, fiber.StatusUnauthorized)
+			return handlers.OldSendError(c, ErrMalformedAuthToken, fiber.StatusUnauthorized)
 		}
 
 		// Extract the token part
@@ -37,14 +38,14 @@ func Auth(secret []byte) fiber.Handler {
 		claims, err := jwt.ParseToken(tokenString, secret)
 		if err != nil {
 			log.ErrorLog.Printf("Error unathorized: %v\n", err)
-			return handlers.SendError(c, err, fiber.StatusUnauthorized)
+			return handlers.OldSendError(c, err, fiber.StatusUnauthorized)
 		}
 
 		c.Locals(jwt.UserClaimKey, claims)
 
 		if claims.ExpiresAt.Before(time.Now()) {
 			log.ErrorLog.Printf("Error expired token: %v\n", ErrTokenExpired)
-			return handlers.SendError(c, ErrTokenExpired, fiber.StatusUnauthorized)
+			return handlers.OldSendError(c, ErrTokenExpired, fiber.StatusUnauthorized)
 		}
 
 		return c.Next()
@@ -63,7 +64,7 @@ func RoleChecker(roles ...string) fiber.Handler {
 		}
 
 		if !hasAccess {
-			return handlers.SendError(c, errors.New("you don't have access to this section"), fiber.StatusForbidden)
+			return handlers.OldSendError(c, errors.New("you don't have access to this section"), fiber.StatusForbidden)
 		}
 
 		return c.Next()
