@@ -9,7 +9,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8082",
+    "host": "0.0.0.0:8082",
     "basePath": "/api/v1",
     "paths": {
         "/boards": {
