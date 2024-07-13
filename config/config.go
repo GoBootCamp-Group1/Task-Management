@@ -15,6 +15,9 @@ type Server struct {
 	TokenSecret            string `mapstructure:"token_secret"`
 	MaxRateLimit           int    `mapstructure:"max_rate_limit"`
 	RateLimitExpiration    int    `mapstructure:"rate_limit_expiration"`
+	AllowedOrigins         string `mapstructure:"allowed_origins"`
+	AllowedMethods         string `mapstructure:"allowed_methods"`
+	AllowedMHeaders        string `mapstructure:"allowed_headers"`
 }
 
 type DB struct {

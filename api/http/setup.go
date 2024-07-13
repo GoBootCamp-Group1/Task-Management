@@ -23,7 +23,7 @@ func Run(cfg config.Server, app *app.Container) {
 	fiberApp.Get("/swagger/*", swagger.HandlerDefault)
 
 	rateLimit(cfg, fiberApp)
-	corsLimit(fiberApp)
+	corsLimit(cfg, fiberApp)
 
 	api := fiberApp.Group("/api/v1", middlerwares.SetUserContext())
 
@@ -60,11 +60,11 @@ func rateLimit(cfg config.Server, fiberApp *fiber.App) fiber.Router {
 	}))
 }
 
-func corsLimit(fiberApp *fiber.App) fiber.Router {
+func corsLimit(cfg config.Server, fiberApp *fiber.App) fiber.Router {
 	return fiberApp.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,HEAD,PUT,DELETE",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowOrigins: cfg.AllowedOrigins,
+		AllowMethods: cfg.AllowedMethods,
+		AllowHeaders: cfg.AllowedMHeaders,
 	}))
 }
 

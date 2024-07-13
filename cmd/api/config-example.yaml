@@ -6,6 +6,9 @@ server:
   token_secret: "P@$$%Secret6677"
   max_rate_limit: 15
   rate_limit_expiration: 30
+  allowed_origins: "*"
+  allowed_methods: "GET,POST,HEAD,PUT,DELETE"
+  allowed_headers: "Origin, Content-Type, Accept, Authorization"
 db:
   user: "postgres"
   pass: "postgres"
