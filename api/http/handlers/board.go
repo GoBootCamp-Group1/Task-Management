@@ -193,3 +193,147 @@ func DeleteBoard(boardService *services.BoardService) fiber.Handler {
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 }
+
+type InviteUserRequest struct {
+	UserId   uint   `json:"user_id"`
+	RoleName string `json:"role_name"`
+}
+
+// InviteUserToBoard invite a user to the board
+// @Summary Invite User to Board
+// @Description invites a user to board
+// @Tags Board
+// @Accept  json
+// @Produce json
+// @Param   id      path     string  true  "Board ID"
+// @Param   body  body      InviteUserRequest  true  "Create Board"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{id}/add-user [post]
+// @Security ApiKeyAuth
+func InviteUserToBoard(boardService *services.BoardService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		boardId, err := strconv.ParseUint(c.Params("id"), 10, 32)
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		validate := validation.NewValidator()
+		var input InviteUserRequest
+
+		if err = c.BodyParser(&input); err != nil {
+			log.ErrorLog.Printf("Error parsing user invitation request body: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		if err = validate.Struct(input); err != nil {
+			log.ErrorLog.Printf("Error validating user invitation request body: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		if err = boardService.InviteUserToBoard(c.Context(), input.UserId, uint(boardId), input.RoleName); err != nil {
+			log.ErrorLog.Printf("Error inviting user: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+		msg := "User invited successfully"
+		log.InfoLog.Println(msg)
+
+		return SendSuccessResponse(c, msg, nil)
+	}
+}
+
+// RemoveUserFromBoard remove user from the board
+// @Summary Remove User from Board
+// @Description removes a user from board
+// @Tags Board
+// @Accept  json
+// @Produce json
+// @Param   board_id      path     string  true  "Board ID"
+// @Param   user_id      path     string  true  "User ID"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{board_id}/users/{user_id} [delete]
+// @Security ApiKeyAuth
+func RemoveUserFromBoard(boardService *services.BoardService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		boardId, err := strconv.ParseUint(c.Params("board_id"), 10, 32)
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		userId, err := strconv.ParseUint(c.Params("user_id"), 10, 32)
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing user id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		if err = boardService.RemoveUserFromBoard(c.Context(), uint(userId), uint(boardId)); err != nil {
+			log.ErrorLog.Printf("Error removing user from board: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+		msg := "User removed from board successfully"
+		log.InfoLog.Println(msg)
+
+		return SendSuccessResponse(c, msg, nil)
+	}
+}
+
+type ChangeUserRoleRequest struct {
+	RoleName string `json:"role_name"`
+}
+
+// ChangeUserRoleInBoard change user role in board
+// @Summary Change User Role in Board
+// @Description changes user role in board
+// @Tags Board
+// @Accept  json
+// @Produce json
+// @Param   board_id      path     string  true  "Board ID"
+// @Param   user_id      path     string  true  "User ID"
+// @Param   body  body      ChangeUserRoleRequest  true  "Create Board"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{board_id}/users/{user_id}  [put]
+// @Security ApiKeyAuth
+func ChangeUserRoleInBoard(boardService *services.BoardService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		boardId, err := strconv.ParseUint(c.Params("board_id"), 10, 32)
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		userId, err := strconv.ParseUint(c.Params("user_id"), 10, 32)
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing user id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		validate := validation.NewValidator()
+		var input ChangeUserRoleRequest
+
+		if err = c.BodyParser(&input); err != nil {
+			log.ErrorLog.Printf("Error parsing user role change request body: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		if err = validate.Struct(input); err != nil {
+			log.ErrorLog.Printf("Error validating user role change request body: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		if err = boardService.ChangeUserRole(c.Context(), uint(userId), uint(boardId), input.RoleName); err != nil {
+			log.ErrorLog.Printf("Error changeing user role: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+		msg := "User role changed successfully"
+		log.InfoLog.Println(msg)
+
+		return SendSuccessResponse(c, msg, nil)
+	}
+}

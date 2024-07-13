@@ -86,7 +86,7 @@ func (r *taskRepo) GetByID(ctx context.Context, id uint) (*domains.Task, error) 
 		Preload("Creator").
 		Preload("Column").
 		Preload("Assignee").
-		//TODO:additional relations
+		Preload("Parent").
 		First(&task).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -134,6 +134,27 @@ func (r *taskRepo) Delete(ctx context.Context, id uint) error {
 	}
 
 	return r.db.WithContext(ctx).Model(&entities.Task{}).Delete(&existingTask).Error
+}
+
+func (r *taskRepo) GetTaskChildren(ctx context.Context, taskID uint) ([]domains.TaskChild, error) {
+	var childEntities []entities.TaskChild
+	query := `
+        WITH RECURSIVE sub_tasks AS (SELECT *
+									 FROM tasks
+									 WHERE parent_id = ?
+									 UNION ALL
+									 SELECT t.*
+									 FROM tasks t
+											  INNER JOIN sub_tasks st ON st.id = t.parent_id)
+		SELECT st2.*, columns.name AS "column_name", columns.is_final
+		FROM sub_tasks st2
+				 INNER JOIN columns on st2.column_id = columns.id
+    `
+	err := r.db.WithContext(ctx).Raw(query, taskID).Scan(&childEntities).Error
+
+	taskChildren := mappers.TaskChildEntitiesToDomain(childEntities)
+
+	return taskChildren, err
 }
 
 func (r *taskRepo) GetTaskDependencies(ctx context.Context, taskID uint) ([]domains.TaskDependency, error) {

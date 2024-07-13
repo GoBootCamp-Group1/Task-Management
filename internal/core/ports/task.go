@@ -16,4 +16,5 @@ type TaskRepo interface {
 	RemoveTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error
 	DependencyExists(ctx context.Context, taskID, dependentTaskID uint) (bool, error)
 	GetAllTaskDependencies(ctx context.Context) ([]domains.TaskDependency, error)
+	GetTaskChildren(ctx context.Context, taskID uint) ([]domains.TaskChild, error)
 }
