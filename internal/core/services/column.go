@@ -23,8 +23,8 @@ func (s *ColumnService) GetColumnById(ctx context.Context, id uint) (*domains.Co
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *ColumnService) GetAllColumns(ctx context.Context, boardId uint) ([]*domains.Column, error) {
-	return s.repo.GetAll(ctx, boardId)
+func (s *ColumnService) GetAllColumns(ctx context.Context, boardId uint, limit int, offset int) ([]*domains.Column, error) {
+	return s.repo.GetAll(ctx, boardId, limit, offset)
 }
 
 func (s *ColumnService) Update(ctx context.Context, updateColumn *domains.ColumnUpdate) error {

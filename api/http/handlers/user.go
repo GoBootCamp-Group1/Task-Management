@@ -3,12 +3,13 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
-	"time"
 )
 
 var (
@@ -40,13 +41,13 @@ func SignUpUser(userService *services.UserService) fiber.Handler {
 
 		if err := c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing user sign-up request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err := validate.Struct(input)
 		if err != nil {
 			log.ErrorLog.Printf("Error validating user sign-up request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		userModel := domains.User{
@@ -58,7 +59,7 @@ func SignUpUser(userService *services.UserService) fiber.Handler {
 		err = userService.CreateUser(c.Context(), &userModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error creating user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 		msg := "User signed up (created) successfully"
 		log.InfoLog.Println(msg)
@@ -98,19 +99,19 @@ func LoginUser(authService *services.AuthService) fiber.Handler {
 
 		if err := c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing user login request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		err := validate.Struct(input)
 		if err != nil {
 			log.ErrorLog.Printf("Error vaidating user login request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return OldSendError(c, err, fiber.StatusBadRequest)
 		}
 
 		authToken, err := authService.Login(c.Context(), input.Email, input.Password)
 		if err != nil {
 			log.ErrorLog.Printf("Error logging in user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
 
 		log.InfoLog.Println("User logged in successfully")
@@ -123,13 +124,13 @@ func RefreshCreds(authService *services.AuthService) fiber.Handler {
 		refToken := c.GetReqHeaders()["Authorization"]
 		if len(refToken[0]) == 0 {
 			log.ErrorLog.Printf("Error refreshing token: %v\n", ErrRefreshTokenNotProvided)
-			return SendError(c, ErrRefreshTokenNotProvided, fiber.StatusBadRequest)
+			return OldSendError(c, ErrRefreshTokenNotProvided, fiber.StatusBadRequest)
 		}
 
 		authToken, err := authService.RefreshAuth(c.UserContext(), refToken[0])
 		if err != nil {
 			log.ErrorLog.Printf("Error refreshing token, not authorized: %v\n", err)
-			return SendError(c, err, fiber.StatusUnauthorized)
+			return OldSendError(c, err, fiber.StatusUnauthorized)
 		}
 		log.InfoLog.Println("Token refreshed successfully")
 
