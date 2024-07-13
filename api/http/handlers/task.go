@@ -33,6 +33,7 @@ var (
 	ErrInvalidEndDatetimeLayout   = errors.New("invalid end datetime format, example: " + dateTimeLayout)
 	ErrTaskNotFound               = fiber.NewError(fiber.StatusNotFound, "Task not found")
 	ErrNoTaskFound                = fiber.NewError(fiber.StatusNotFound, "No tasks found")
+	ErrInvalidTaskIDParam         = fiber.NewError(fiber.StatusNotFound, "invalid task id")
 )
 
 // CreateTask creates a new task
@@ -347,5 +348,73 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 		log.InfoLog.Println("Task deleted successfully")
 
 		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+type TaskCommentRequest struct {
+	Comment string `json:"comment" validate:"required,min=3,max=50" example:"new comment"`
+}
+
+// CreateTaskComment creates a new task comment
+// @Summary Create Task comment
+// @Description creates a task comment
+// @Tags Task
+// @Accept  json
+// @Produce json
+// @Param   body  body      TaskRequest  true  "Create Task Comment"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /tasks [post]
+// @Security ApiKeyAuth
+func CreateTaskComment(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		var input TaskCommentRequest
+
+		err := ValidateAndFill(c, &input)
+		if err != nil {
+			return err
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		//Get Board ID
+		boardID, errBoardID := c.ParamsInt("boardID")
+		if errBoardID != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errBoardID)
+			return SendError(c, ErrInvalidBoardIDParam, fiber.StatusBadRequest)
+		}
+
+		//Get Task ID
+		taskID, errTaskID := c.ParamsInt("taskID")
+		if errTaskID != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", errTaskID)
+			return SendError(c, ErrInvalidTaskIDParam, fiber.StatusBadRequest)
+		}
+
+		taskCommentModel := domains.TaskComment{
+			UserID:  userID,
+			TaskID:  uint(taskID),
+			Comment: input.Comment,
+		}
+
+		createdComment, err := taskService.CreateComment(c.Context(), userID, uint(boardID), &taskCommentModel)
+		if err != nil {
+			log.ErrorLog.Printf("Error creating task: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+		log.InfoLog.Println("Comment created successfully")
+
+		return SendSuccessResponse(
+			c,
+			"Successfully created.",
+			presenter.NewTaskCommentPresenter(createdComment),
+		)
 	}
 }

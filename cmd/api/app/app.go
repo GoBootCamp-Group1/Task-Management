@@ -166,8 +166,9 @@ func (a *Container) setTaskService() {
 		return
 	}
 	taskRepository := storage.NewTaskRepo(a.dbConn)
+	taskCommentRepository := storage.NewTaskCommentRepo(a.dbConn)
 	notifierAdapter := notifier.NewNotifierAdapter(a.notifier)
-	a.taskService = services.NewTaskService(taskRepository, notifierAdapter, a.boardService)
+	a.taskService = services.NewTaskService(taskRepository, notifierAdapter, a.boardService, taskCommentRepository)
 }
 
 func (a *Container) setColumnService() {

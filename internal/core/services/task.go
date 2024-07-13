@@ -8,16 +8,23 @@ import (
 )
 
 type TaskService struct {
-	repo         ports.TaskRepo
-	notifier     ports.Notifier
-	boardService *BoardService
+	repo            ports.TaskRepo
+	taskCommentRepo ports.TaskCommentRepo
+	notifier        ports.Notifier
+	boardService    *BoardService
 }
 
-func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService) *TaskService {
+func NewTaskService(
+	repo ports.TaskRepo,
+	notifier ports.Notifier,
+	boardService *BoardService,
+	taskCommentRepo ports.TaskCommentRepo,
+) *TaskService {
 	return &TaskService{
-		repo:         repo,
-		notifier:     notifier,
-		boardService: boardService,
+		repo:            repo,
+		notifier:        notifier,
+		boardService:    boardService,
+		taskCommentRepo: taskCommentRepo,
 	}
 }
 
@@ -143,4 +150,26 @@ func (s *TaskService) DeleteTask(ctx context.Context, userID uint, id uint) erro
 		return fmt.Errorf("repository: can not delete task %w", errDelete)
 	}
 	return nil
+}
+
+func (s *TaskService) CreateComment(ctx context.Context, userID uint, boardID uint, taskComment *domains.TaskComment) (*domains.TaskComment, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, boardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	//create task comment
+	errCreate := s.taskCommentRepo.Create(ctx, taskComment)
+	if errCreate != nil {
+		return nil, fmt.Errorf("repository: can not create comment: %w", errCreate)
+	}
+
+	//load comment
+	comment, errFetch := s.taskCommentRepo.GetByID(ctx, taskComment.ID.String())
+	if errFetch != nil {
+		return nil, fmt.Errorf("repository: can not fetch comment #%d: %w", taskComment.ID, errFetch)
+	}
+
+	return comment, nil
 }

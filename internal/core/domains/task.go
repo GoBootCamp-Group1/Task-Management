@@ -2,6 +2,7 @@ package domains
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -27,4 +28,16 @@ type Task struct {
 	Column        *Column
 	Parent        *Task
 	Assignee      *User
+}
+
+type TaskComment struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
+	UserID    uint
+	TaskID    uint
+	Comment   string
+	Task      *Task
+	User      *User
 }

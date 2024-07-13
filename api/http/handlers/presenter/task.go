@@ -3,6 +3,7 @@ package presenter
 import (
 	"encoding/json"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -60,5 +61,29 @@ func NewTaskPresenter(task *domains.Task) *TaskPresenter {
 		Column:        column,
 		Parent:        parent,
 		Assignee:      assignee,
+	}
+}
+
+type TaskCommentPresenter struct {
+	ID        uuid.UUID      `json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	Comment   string         `json:"comment"`
+	User      *UserPresenter `json:"user"`
+}
+
+func NewTaskCommentPresenter(comment *domains.TaskComment) *TaskCommentPresenter {
+
+	var user *UserPresenter
+	if comment.User != nil {
+		user = NewUserPresenter(comment.User)
+	}
+
+	return &TaskCommentPresenter{
+		ID:        comment.ID,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+		Comment:   comment.Comment,
+		User:      user,
 	}
 }
