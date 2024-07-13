@@ -9,12 +9,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func InitBoardRoutes(router *fiber.Router, app *app.Container, cfg config.Server) {
+func InitBoardRoutes(router *fiber.Router, cotainer *app.Container, cfg config.Server) {
 
 	boardGroup := (*router).Group("/boards", middlerwares.Auth([]byte(cfg.TokenSecret)))
 
-	boardGroup.Post("", handlers.CreateBoard(app.BoardService()))
-	boardGroup.Put("/:id", handlers.UpdateBoard(app.BoardService()))
-	boardGroup.Get("/:id", handlers.GetBoardByID(app.BoardService()))
-	boardGroup.Delete("/:id", handlers.DeleteBoard(app.BoardService()))
+	boardGroup.Post("", handlers.CreateBoard(cotainer.BoardService()))
+	boardGroup.Put("/:id", handlers.UpdateBoard(cotainer.BoardService()))
+	boardGroup.Get("/:id", handlers.GetBoardByID(cotainer.BoardService()))
+	boardGroup.Delete("/:id", handlers.DeleteBoard(cotainer.BoardService()))
 }

@@ -22,7 +22,7 @@ import (
 
 // @Security ApiKeyAuth
 
-// @host		localhost:8082
+// @host		0.0.0.0:8082
 // @BasePath	/api/v1
 func main() {
 	cfg := readConfig()

@@ -99,7 +99,7 @@ definitions:
     required:
     - name
     type: object
-host: localhost:8082
+host: 0.0.0.0:8082
 info:
   contact:
     name: GoBootcamp-Group1
