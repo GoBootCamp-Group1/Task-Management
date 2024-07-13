@@ -6,7 +6,6 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers/presenter"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
-	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/utils"
 	"github.com/gofiber/fiber/v2"
@@ -114,7 +113,6 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 	}
 }
 
-/*
 // GetTaskByID get a task
 // @Summary Get Task
 // @Description gets a task
@@ -127,7 +125,6 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 // @Failure 500
 // @Router /boards/{boardID}/tasks/{taskID} [get]
 // @Security ApiKeyAuth
-*/
 func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -189,12 +186,17 @@ func GetTasksByBoardID(taskService *services.TaskService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
-		claims := c.Locals(jwt.UserClaimKey).(*jwt.UserClaims)
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
 
 		// init variables for pagination
 		page, pageSize := PageAndPageSize(c)
 
-		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), claims.UserID, uint(boardID), uint(page), uint(pageSize))
+		tasks, total, err := taskService.GetTasksByBoardID(c.Context(), userID, uint(boardID), uint(page), uint(pageSize))
 		if err != nil {
 			log.ErrorLog.Printf("Error gettings tasks: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
