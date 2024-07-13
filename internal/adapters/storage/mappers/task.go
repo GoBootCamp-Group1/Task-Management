@@ -123,3 +123,9 @@ func TaskCommentEntityToDomain(entity *entities.TaskComment) *domains.TaskCommen
 		User:      UserEntityToDomain(&entity.User),
 	}
 }
+
+func TaskCommentEntitiesToDomain(taskEntities []entities.TaskComment) []domains.TaskComment {
+	return fp.Map(taskEntities, func(entity entities.TaskComment) domains.TaskComment {
+		return *TaskCommentEntityToDomain(&entity)
+	})
+}

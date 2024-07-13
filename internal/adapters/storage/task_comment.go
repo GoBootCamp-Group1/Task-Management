@@ -60,6 +60,38 @@ func (r *taskCommentRepo) Delete(ctx context.Context, id uint) error {
 }
 
 func (r *taskCommentRepo) GetListByTaskID(ctx context.Context, taskID uint, limit uint, offset uint) ([]domains.TaskComment, uint, error) {
-	//TODO implement me
-	panic("implement me")
+	var commentEntities []entities.TaskComment
+
+	query := r.db.WithContext(ctx).
+		Model(&entities.TaskComment{}).
+		Where("task_id = ?", taskID).
+		Preload("User")
+
+	//calculate total entities
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	//apply offset
+	if offset > 0 {
+		query = query.Offset(int(offset))
+	}
+
+	//apply limit
+	if limit > 0 {
+		query = query.Limit(int(limit))
+	}
+
+	//fetch entities
+	if err := query.Find(&commentEntities).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+
+	commentModels := mappers.TaskCommentEntitiesToDomain(commentEntities)
+
+	return commentModels, uint(total), nil
 }

@@ -485,11 +485,11 @@ type TaskCommentRequest struct {
 // @Tags Task
 // @Accept  json
 // @Produce json
-// @Param   body  body      TaskRequest  true  "Create Task Comment"
+// @Param   body  body      TaskCommentRequest  true  "Create Task Comment"
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /tasks [post]
+// @Router /boards/{boardID}/tasks/{taskID}/comments [post]
 // @Security ApiKeyAuth
 func CreateTaskComment(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -539,6 +539,72 @@ func CreateTaskComment(taskService *services.TaskService) fiber.Handler {
 			c,
 			"Successfully created.",
 			presenter.NewTaskCommentPresenter(createdComment),
+		)
+	}
+}
+
+// TaskCommentsList get task comments
+// @Summary Get Tasks
+// @Tags Task
+// @Description gets comments for a task
+// @Produce json
+// @Param   boardID  path     string  true  "Board ID"
+// @Param   taskID  path     string  true  "Task ID"
+// @Success 200 {array} Response
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/comments [get]
+// @Security ApiKeyAuth
+func TaskCommentsList(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		// init variables for pagination
+		page, pageSize := PageAndPageSize(c)
+
+		comments, total, err := taskService.GetTaskComments(c.Context(), userID, uint(boardID), uint(taskID), uint(page), uint(pageSize))
+		if err != nil {
+			log.ErrorLog.Printf("Error gettings comments: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		if len(comments) == 0 {
+			log.ErrorLog.Printf("Error getting comments: %v\n", ErrNoTaskFound)
+			return SendError(c, ErrNoTaskFound, fiber.StatusNotFound)
+		}
+
+		//generate response data
+		taskCommentPresenters := make([]*presenter.TaskCommentPresenter, len(comments))
+		for i, comment := range comments {
+			taskCommentPresenters[i] = presenter.NewTaskCommentPresenter(&comment)
+		}
+		log.InfoLog.Println("Tasks loaded successfully")
+
+		return SendSuccessPaginateResponse(
+			c,
+			"Successfully fetched.",
+			taskCommentPresenters,
+			uint(page),
+			uint(pageSize),
+			total,
 		)
 	}
 }

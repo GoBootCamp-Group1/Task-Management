@@ -12,7 +12,7 @@ type TaskService struct {
 	taskCommentRepo ports.TaskCommentRepo
 	notifier        ports.Notifier
 	boardService    *BoardService
-	columnService *ColumnService
+	columnService   *ColumnService
 }
 
 func NewTaskService(
@@ -23,10 +23,10 @@ func NewTaskService(
 	taskCommentRepo ports.TaskCommentRepo,
 ) *TaskService {
 	return &TaskService{
-		repo:          repo,
-		notifier:      notifier,
-		boardService:  boardService,
-		columnService: columnService,
+		repo:            repo,
+		notifier:        notifier,
+		boardService:    boardService,
+		columnService:   columnService,
 		taskCommentRepo: taskCommentRepo,
 	}
 }
@@ -238,4 +238,24 @@ func (s *TaskService) CreateComment(ctx context.Context, userID uint, boardID ui
 	}
 
 	return comment, nil
+}
+
+func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID uint, taskID uint, pageNumber uint, pageSize uint) ([]domains.TaskComment, uint, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
+	if !hasAccess {
+		return nil, 0, fmt.Errorf("access denied")
+	}
+
+	//pagination calculate
+	limit := pageSize
+	offset := (pageNumber - 1) * pageSize
+
+	//create task comment
+	comments, total, errFetch := s.taskCommentRepo.GetListByTaskID(ctx, taskID, limit, offset)
+	if errFetch != nil {
+		return nil, 0, fmt.Errorf("repository: can not fetch comments: %w", errFetch)
+	}
+
+	return comments, total, nil
 }
