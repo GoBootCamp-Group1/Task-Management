@@ -58,11 +58,11 @@ func (r *roleRepository) GetByID(ctx context.Context, id uint) (*domains.Role, e
 }
 
 func (r *roleRepository) GetAll(ctx context.Context) ([]domains.Role, error) {
-	var entities []entities.Role
-	if err := r.db.WithContext(ctx).Find(&entities).Error; err != nil {
+	var roleEntities []entities.Role
+	if err := r.db.WithContext(ctx).Find(&roleEntities).Error; err != nil {
 		return nil, err
 	}
-	return mappers.RoleEntitiesToDomain(entities), nil
+	return mappers.RoleEntitiesToDomain(roleEntities), nil
 }
 
 func (r *roleRepository) Update(ctx context.Context, role *domains.Role) error {
@@ -86,7 +86,7 @@ func (r *roleRepository) Delete(ctx context.Context, id uint) error {
 
 func (r *roleRepository) GetByName(ctx context.Context, name string) (*domains.Role, error) {
 	var entity entities.Role
-	if err := r.db.WithContext(ctx).First(&entity, name).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("name = ?", name).First(&entity).Error; err != nil {
 
 		return nil, err
 	}

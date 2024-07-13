@@ -27,7 +27,7 @@ var (
 func (r *boardMemberRepo) Create(ctx context.Context, member *domains.BoardMember) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToBoardMemberEntity(member)
-		if err := tx.WithContext(ctx).Create(&entity).Error; err != nil {
+		if err := tx.WithContext(ctx).Table(entity.TableName()).Create(&entity).Error; err != nil {
 			return err
 		}
 		member.ID = entity.ID // set the ID to the domain object after creation
@@ -37,7 +37,7 @@ func (r *boardMemberRepo) Create(ctx context.Context, member *domains.BoardMembe
 
 func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domains.BoardMember, error) {
 	var m entities.BoardMember
-	err := r.db.WithContext(ctx).Model(&entities.BoardMember{}).Where("id = ?", id).First(&m).Error
+	err := r.db.WithContext(ctx).Table(m.TableName()).Where("id = ?", id).First(&m).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -48,9 +48,8 @@ func (r *boardMemberRepo) GetByID(ctx context.Context, id uint) (*domains.BoardM
 }
 
 func (r *boardMemberRepo) Update(ctx context.Context, member *domains.BoardMember) error {
-
-	var existingBoardMember *entities.BoardMember
-	if err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", member.ID).First(&existingBoardMember).Error; err != nil {
+	var existingBoardMember entities.BoardMember
+	if err := r.db.WithContext(ctx).Table(existingBoardMember.TableName()).Model(&entities.Board{}).Where("id = ?", member.ID).First(&existingBoardMember).Error; err != nil {
 		return err
 	}
 	existingBoardMember.RoleID = member.RoleID
@@ -60,12 +59,13 @@ func (r *boardMemberRepo) Update(ctx context.Context, member *domains.BoardMembe
 }
 
 func (r *boardMemberRepo) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Delete(&entities.BoardMember{}, id).Error
+	var entity entities.BoardMember
+	return r.db.WithContext(ctx).Table(entity.TableName()).Where("id = ?", id).Delete(&entity).Error
 }
 
 func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]domains.BoardMember, error) {
 	var boardMemberEntities []entities.BoardMember
-	err := r.db.WithContext(ctx).Where("board_id = ?", boardID).Find(&boardMemberEntities).Error
+	err := r.db.WithContext(ctx).Table(boardMemberEntities[0].TableName()).Where("board_id = ?", boardID).Find(&boardMemberEntities).Error
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +74,9 @@ func (r *boardMemberRepo) GetBoardMembers(ctx context.Context, boardID uint) ([]
 
 }
 func (r *boardMemberRepo) GetBoardMember(ctx context.Context, boardID, userID uint) (*domains.BoardMember, error) {
-	var boardMember domains.BoardMember
+	var boardMember entities.BoardMember
 	if err := r.db.WithContext(ctx).
+		Table(boardMember.TableName()).
 		Where("board_id = ? AND user_id = ?", boardID, userID).
 		First(&boardMember).Error; err != nil {
 		return nil, err
@@ -85,5 +86,5 @@ func (r *boardMemberRepo) GetBoardMember(ctx context.Context, boardID, userID ui
 		return nil, ErrBoardMemberNotFound
 	}
 
-	return &boardMember, nil
+	return mappers.BoardMemberEntityToDomain(&boardMember), nil
 }

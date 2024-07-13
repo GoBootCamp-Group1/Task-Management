@@ -119,7 +119,7 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 // @Tags Task
 // @Produce json
 // @Param   id      path     string  true  "Task ID"
-// @Success 200 {object} domains.Task
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
@@ -172,7 +172,7 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 // @Tags Task
 // @Produce json
 // @Param   boardID  path     string  true  "Board ID"
-// @Success 200 {array} presenter.TaskPresenter
+// @Success 200 {array} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500

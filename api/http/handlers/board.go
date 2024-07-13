@@ -302,7 +302,7 @@ type ChangeUserRoleRequest struct {
 // @Security ApiKeyAuth
 func ChangeUserRoleInBoard(boardService *services.BoardService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		boardId, err := strconv.ParseUint(c.Params("id"), 10, 32)
+		boardId, err := strconv.ParseUint(c.Params("board_id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
