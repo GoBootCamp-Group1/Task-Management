@@ -427,3 +427,35 @@ func RemoveTaskDependency(taskService *services.TaskService) fiber.Handler {
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 }
+
+// GetTaskDependencies retrieves the dependencies for a given task
+// @Summary Get Task Dependencies
+// @Description retrieves the dependencies for a given task
+// @Tags Task
+// @Accept  json
+// @Param   taskID  path   uint  true  "Task ID"
+// @Success 200 {array} domains.TaskDependency
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/dependencies [get]
+// @Security ApiKeyAuth
+func GetTaskDependencies(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Parse taskID from path parameters
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing taskID: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		// Get task dependencies
+		taskDependencies, err := taskService.GetTaskDependencies(c.Context(), uint(taskID))
+		if err != nil {
+			log.ErrorLog.Printf("Error retrieving task dependencies: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		log.InfoLog.Printf("Retrieved dependencies for task #%d", taskID)
+		return c.JSON(taskDependencies)
+	}
+}

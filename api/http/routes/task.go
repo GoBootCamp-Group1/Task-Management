@@ -20,4 +20,6 @@ func InitTaskRoutes(router *fiber.Router, app *app.Container, cfg config.Server)
 	taskGroup.Delete("/:id", handlers.DeleteTask(app.TaskService()))
 	taskGroup.Post("/:taskID/dependencies/:dependentTaskID", handlers.AddTaskDependency(app.TaskService()))
 	taskGroup.Delete("/:taskID/dependencies/:dependentTaskID", handlers.RemoveTaskDependency(app.TaskService()))
+	taskGroup.Get("/:taskID/dependencies", handlers.GetTaskDependencies(app.TaskService()))
+
 }

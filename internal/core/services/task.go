@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
@@ -149,7 +148,6 @@ func (s *TaskService) DeleteTask(ctx context.Context, userID uint, id uint) erro
 
 func (s *TaskService) AddTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
 
-	var existingDependencies []entities.TaskDependency
 	existingDependencies, err := s.repo.GetAllTaskDependencies(ctx)
 	if err != nil {
 		log.ErrorLog.Printf("Error fetching dependencies from database: %v", err)
@@ -170,6 +168,13 @@ func (s *TaskService) AddTaskDependency(ctx context.Context, taskID, dependentTa
 }
 func (s *TaskService) RemoveTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
 	return s.repo.RemoveTaskDependency(ctx, taskID, dependentTaskID)
+}
+func (s *TaskService) GetTaskDependencies(ctx context.Context, taskID uint) ([]domains.TaskDependency, error) {
+	taskDependencies, err := s.repo.GetTaskDependencies(ctx, taskID)
+	if err != nil {
+		return nil, err
+	}
+	return taskDependencies, nil
 }
 
 // hasCycle checks if adding tid -> dtid would create a cycle in the graph

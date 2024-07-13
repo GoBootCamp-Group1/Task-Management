@@ -136,10 +136,10 @@ func (r *taskRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Model(&entities.Task{}).Delete(&existingTask).Error
 }
 
-func (r *taskRepo) GetTaskDependencies(ctx context.Context, taskID uint) ([]*entities.TaskDependency, error) {
-	var dependencies []*entities.TaskDependency
+func (r *taskRepo) GetTaskDependencies(ctx context.Context, taskID uint) ([]domains.TaskDependency, error) {
+	var dependencies []entities.TaskDependency
 	err := r.db.WithContext(ctx).Where("task_id = ?", taskID).Find(&dependencies).Error
-	return dependencies, err
+	return mappers.TaskDependencyEntitiesToDomains(dependencies), err
 }
 
 func (r *taskRepo) AddTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
@@ -171,11 +171,11 @@ func (r *taskRepo) DependencyExists(ctx context.Context, taskID, dependentTaskID
 	return dependencies != nil, err
 }
 
-func (r *taskRepo) GetAllTaskDependencies(ctx context.Context) ([]entities.TaskDependency, error) {
+func (r *taskRepo) GetAllTaskDependencies(ctx context.Context) ([]domains.TaskDependency, error) {
 	var dependencies []entities.TaskDependency
 	result := r.db.WithContext(ctx).Find(&dependencies)
 	if result.Error != nil {
 		return nil, fmt.Errorf("error fetching task dependencies: %v", result.Error)
 	}
-	return dependencies, nil
+	return mappers.TaskDependencyEntitiesToDomains(dependencies), nil
 }
