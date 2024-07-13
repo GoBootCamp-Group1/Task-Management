@@ -22,9 +22,9 @@ type Task struct {
 	StoryPoint    int
 	Additional    json.RawMessage
 
-	Board   Board  `gorm:"foreignKey:BoardID"`
-	Creator User   `gorm:"foreignKey:CreatedBy"`
-	Column  Column `gorm:"foreignKey:ColumnID"`
-	//Parent   Task
-	//Assignee User
+	Board    Board  `gorm:"foreignKey:BoardID"`
+	Creator  User   `gorm:"foreignKey:CreatedBy"`
+	Column   Column `gorm:"foreignKey:ColumnID"`
+	Parent   *Task  `gorm:"foreignKey:ParentID"`
+	Assignee *User  `gorm:"foreignKey:AssigneeID"`
 }
