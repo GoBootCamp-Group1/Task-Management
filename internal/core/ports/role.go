@@ -11,4 +11,5 @@ type RoleRepository interface {
 	GetAll(ctx context.Context) ([]domains.Role, error)
 	Update(ctx context.Context, role *domains.Role) error
 	Delete(ctx context.Context, id uint) error
+	GetByName(ctx context.Context, name string) (*domains.Role, error)
 }

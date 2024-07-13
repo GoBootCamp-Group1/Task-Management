@@ -84,7 +84,7 @@ func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, err
 }
 
 func (r *columnRepo) GetAll(ctx context.Context, boardId uint, limit int, offset int) ([]*domains.Column, error) {
-	var entitieColumns []entities.Column
+	var columnEntities []entities.Column
 
 	query := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC")
 
@@ -101,14 +101,14 @@ func (r *columnRepo) GetAll(ctx context.Context, boardId uint, limit int, offset
 		query = query.Limit(limit)
 	}
 
-	err := query.Find(&entitieColumns).Error
+	err := query.Find(&columnEntities).Error
 
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	columns := make([]*domains.Column, len(entitieColumns))
-	for i, c := range entitieColumns {
+	columns := make([]*domains.Column, len(columnEntities))
+	for i, c := range columnEntities {
 		columns[i] = mappers.ColumnEntityToDomain(&c)
 	}
 

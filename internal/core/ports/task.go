@@ -11,5 +11,6 @@ type TaskRepo interface {
 	GetByID(ctx context.Context, id uint) (*domains.Task, error)
 	Update(ctx context.Context, task *domains.Task) error
 	Delete(ctx context.Context, id uint) error
-	GetListByBoardID(ctx context.Context, boardID uint, limit int, offset int) ([]*domains.Task, uint, error)
+	GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]domains.Task, uint, error)
+	GetTaskChildren(ctx context.Context, taskID uint) ([]domains.TaskChild, error)
 }

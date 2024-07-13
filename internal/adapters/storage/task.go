@@ -21,14 +21,15 @@ func NewTaskRepo(db *gorm.DB) ports.TaskRepo {
 	}
 }
 
-func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit int, offset int) ([]*domains.Task, uint, error) {
-	var taskEntities []*entities.Task
+func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]domains.Task, uint, error) {
+	var taskEntities []entities.Task
 
 	query := r.db.WithContext(ctx).
 		Model(&entities.Task{}).
 		Where("board_id = ?", boardID).
 		Preload("Board").
 		Preload("Column").
+		Preload("Assignee").
 		Preload("Creator")
 
 	//calculate total entities
@@ -39,12 +40,12 @@ func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit int
 
 	//apply offset
 	if offset > 0 {
-		query = query.Offset(offset)
+		query = query.Offset(int(offset))
 	}
 
 	//apply limit
 	if limit > 0 {
-		query = query.Limit(limit)
+		query = query.Limit(int(limit))
 	}
 
 	//fetch entities
@@ -55,11 +56,7 @@ func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit int
 		return nil, 0, err
 	}
 
-	var taskModels []*domains.Task
-	for _, taskEntity := range taskEntities {
-		model := mappers.TaskEntityToDomain(taskEntity)
-		taskModels = append(taskModels, model)
-	}
+	taskModels := mappers.TaskEntitiesToDomain(taskEntities)
 
 	return taskModels, uint(total), nil
 }
@@ -88,6 +85,8 @@ func (r *taskRepo) GetByID(ctx context.Context, id uint) (*domains.Task, error) 
 		Preload("Board").
 		Preload("Creator").
 		Preload("Column").
+		Preload("Assignee").
+		Preload("Parent").
 		//TODO:additional relations
 		First(&task).Error
 	if err != nil {
@@ -136,4 +135,25 @@ func (r *taskRepo) Delete(ctx context.Context, id uint) error {
 	}
 
 	return r.db.WithContext(ctx).Model(&entities.Task{}).Delete(&existingTask).Error
+}
+
+func (r *taskRepo) GetTaskChildren(ctx context.Context, taskID uint) ([]domains.TaskChild, error) {
+	var childEntities []entities.TaskChild
+	query := `
+        WITH RECURSIVE sub_tasks AS (SELECT *
+									 FROM tasks
+									 WHERE parent_id = ?
+									 UNION ALL
+									 SELECT t.*
+									 FROM tasks t
+											  INNER JOIN sub_tasks st ON st.id = t.parent_id)
+		SELECT st2.*, columns.name AS "column_name", columns.is_final
+		FROM sub_tasks st2
+				 INNER JOIN columns on st2.column_id = columns.id
+    `
+	err := r.db.WithContext(ctx).Raw(query, taskID).Scan(&childEntities).Error
+
+	taskChildren := mappers.TaskChildEntitiesToDomain(childEntities)
+
+	return taskChildren, err
 }

@@ -22,6 +22,7 @@ func NewUserRepo(db *gorm.DB) ports.UserRepo {
 
 var (
 	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserNotFound      = errors.New("user not found")
 )
 
 func (r *userRepo) Create(ctx context.Context, user *domains.User) error {
@@ -50,11 +51,13 @@ func (r *userRepo) GetByID(ctx context.Context, id uint) (*domains.User, error) 
 
 	err := r.db.WithContext(ctx).Model(&entities.User{}).Where("id = ?", id).First(&u).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, err
 	}
+
+	if u.ID == 0 {
+		return nil, ErrUserNotFound
+	}
+
 	return mappers.UserEntityToDomain(&u), nil
 }
 
