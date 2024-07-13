@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
@@ -12,6 +13,29 @@ import (
 
 type taskRepo struct {
 	db *gorm.DB
+}
+
+func (r *taskRepo) GetTaskChildren(ctx context.Context, taskID uint) ([]domains.Task, error) {
+	var taskEntities []entities.Task
+	query := `
+        WITH RECURSIVE sub_tasks AS (
+            SELECT * FROM tasks WHERE parent_id = ?
+            UNION ALL
+            SELECT t.* FROM tasks t
+            INNER JOIN sub_tasks st ON st.id = t.parent_id
+        )
+        SELECT * FROM sub_tasks;
+    `
+	err := r.db.WithContext(ctx).Raw(query, taskID).Scan(&taskEntities).Error
+
+	fmt.Println("fetched data from database: ")
+	//fmt.Println(taskEntities)
+
+	for _, task := range taskEntities {
+		fmt.Printf("ID: %d: %s\n", task.ID, task.Name)
+	}
+
+	return nil, err
 }
 
 func NewTaskRepo(db *gorm.DB) ports.TaskRepo {

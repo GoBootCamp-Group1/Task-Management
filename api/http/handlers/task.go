@@ -347,3 +347,41 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 }
+
+// GetTaskChildren get a list of task children
+// @Summary Get TaskChildren
+// @Description get list of a task children
+// @Tags Task
+// @Produce json
+// @Param   id      path     string  true  "Task ID"
+// @Success 204
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{id}/children [get]
+// @Security ApiKeyAuth
+func GetTaskChildren(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := c.ParamsInt("id")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		_, _ = taskService.GetTaskChildren(c.Context(), userID, uint(boardID), uint(id))
+
+		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
