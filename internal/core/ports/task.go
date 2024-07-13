@@ -18,6 +18,6 @@ type TaskCommentRepo interface {
 	Create(ctx context.Context, comment *domains.TaskComment) error
 	GetByID(ctx context.Context, id string) (*domains.TaskComment, error)
 	Update(ctx context.Context, comment *domains.TaskComment) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, id string) error
 	GetListByTaskID(ctx context.Context, taskID uint, limit uint, offset uint) ([]domains.TaskComment, uint, error)
 }

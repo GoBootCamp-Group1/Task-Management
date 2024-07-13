@@ -259,3 +259,32 @@ func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID 
 
 	return comments, total, nil
 }
+
+func (s *TaskService) GetTaskComment(ctx context.Context, userID uint, boardID uint, taskID uint, commentID string) (*domains.TaskComment, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	//create task comment
+	comment, errFetch := s.taskCommentRepo.GetByID(ctx, commentID)
+	if errFetch != nil {
+		return nil, fmt.Errorf("repository: can not fetch comment: %w", errFetch)
+	}
+
+	return comment, nil
+}
+
+func (s *TaskService) DeleteComment(ctx context.Context, userID uint, boardID uint, taskID uint, id string) error {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, boardID)
+	if !hasAccess {
+		return fmt.Errorf("access denied")
+	}
+	errDelete := s.taskCommentRepo.Delete(ctx, id)
+	if errDelete != nil {
+		return fmt.Errorf("repository: can not delete comment %w", errDelete)
+	}
+	return nil
+}

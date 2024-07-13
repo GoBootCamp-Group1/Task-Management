@@ -24,6 +24,6 @@ func InitTaskRoutes(router *fiber.Router, app *app.Container, cfg config.Server)
 
 	taskGroup.Post("/:taskID/comments", handlers.CreateTaskComment(app.TaskService()))
 	taskGroup.Get("/:taskID/comments", handlers.TaskCommentsList(app.TaskService()))
-	//taskGroup.Get("/:taskID/comments/:id", handlers.GetTaskComment(app.TaskService()))
-	//taskGroup.Delete("/:taskID/comments/:id", handlers.DeleteTaskComment(app.TaskService()))
+	taskGroup.Get("/:taskID/comments/:id", handlers.GetCommentByID(app.TaskService()))
+	taskGroup.Delete("/:taskID/comments/:id", handlers.DeleteComment(app.TaskService()))
 }

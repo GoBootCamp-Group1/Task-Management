@@ -54,9 +54,17 @@ func (r *taskCommentRepo) Update(ctx context.Context, comment *domains.TaskComme
 	panic("implement me")
 }
 
-func (r *taskCommentRepo) Delete(ctx context.Context, id uint) error {
-	//TODO implement me
-	panic("implement me")
+func (r *taskCommentRepo) Delete(ctx context.Context, id string) error {
+	var existingTaskComment *entities.TaskComment
+	err := r.db.WithContext(ctx).Model(&entities.TaskComment{}).Where("id = ?", id).First(&existingTaskComment).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	return r.db.WithContext(ctx).Model(&entities.TaskComment{}).Delete(&existingTaskComment).Error
 }
 
 func (r *taskCommentRepo) GetListByTaskID(ctx context.Context, taskID uint, limit uint, offset uint) ([]domains.TaskComment, uint, error) {
