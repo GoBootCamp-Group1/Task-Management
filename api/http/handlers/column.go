@@ -17,11 +17,15 @@ type UpdateColumnRequest struct {
 	Name string `json:"name" validate:"required,min=3,max=20,excludesall=;" example:"new column"`
 }
 
+type MoveColumnRequest struct {
+	OrderPosition int `json:"position" validate:"required,min=0" example:"2"`
+}
 type CreateColumnRequest struct {
 	Name    string `json:"name" validate:"required,min=3,max=20,excludesall=;" example:"new column"`
 	IsFinal bool   `json:"is_final" example:"false"`
 }
 
+// CreateColumn creates a column
 // @Summary Create Column
 // @Description create a column
 // @Tags Column
@@ -88,7 +92,7 @@ func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 // @Tags Column
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
-// @Success 200 {object} domains.Column
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
@@ -124,11 +128,12 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 // @Description gets all columns of a bard
 // @Tags Column
 // @Produce json
-// @Success 200 {object} domains.Column
+// @Param   boardId      path     string  true  "Board ID"
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns [get]
+// @Router /columns/{boardId} [get]
 // @Security ApiKeyAuth
 func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -159,8 +164,8 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
-// @Param   name      body     string  true  "New Column name"
-// @Success 200 {object} domains.Column
+// @Param   name      body     UpdateColumnRequest  true  "New Column name"
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
@@ -175,7 +180,7 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam, fiber.StatusBadRequest)
 		}
 
-		var input domains.ColumnUpdate
+		var input UpdateColumnRequest
 
 		if err := c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing column update request body: %v\n", err)
@@ -187,9 +192,12 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
-		input.ID = uint(id)
+		column := domains.ColumnUpdate{
+			ID:   uint(id),
+			Name: input.Name,
+		}
 
-		if err := columnService.Update(c.Context(), &input); err != nil {
+		if err := columnService.Update(c.Context(), &column); err != nil {
 			log.ErrorLog.Printf("Error updating column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
@@ -210,8 +218,8 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
-// @Param   order_position      body     number  true  "new position of column [id]"
-// @Success 200 {object} domains.Column
+// @Param   body     body     MoveColumnRequest  true  "new position of column [id]"
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
@@ -226,7 +234,7 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam, fiber.StatusBadRequest)
 		}
 
-		var input domains.ColumnMove
+		var input MoveColumnRequest
 
 		if err := c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing column move request body: %v\n", err)
@@ -238,9 +246,9 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
 
-		input.ID = uint(id)
+		column := domains.ColumnMove{ID: uint(id), OrderPosition: input.OrderPosition}
 
-		if err := columnService.Move(c.Context(), &input); err != nil {
+		if err := columnService.Move(c.Context(), &column); err != nil {
 			log.ErrorLog.Printf("Error moving column: %v\n", err)
 			return SendError(c, err, fiber.StatusBadRequest)
 		}
@@ -254,14 +262,14 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 	}
 }
 
-// FinalColumn make a column as a final column
+// ChangeFinalColumn make a column as a final column
 // @Summary Final Column
 // @Description make a column as a final column
 // @Tags Column
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
-// @Success 200 {object} domains.Column
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
