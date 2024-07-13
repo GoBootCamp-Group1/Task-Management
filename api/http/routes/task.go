@@ -22,6 +22,10 @@ func InitTaskRoutes(router *fiber.Router, app *app.Container, cfg config.Server)
 
 	taskGroup.Patch("/:id/column", handlers.ChangeTaskColumn(app.TaskService()))
 
+	taskGroup.Post("/:taskID/dependencies/:dependentTaskID", handlers.AddTaskDependency(app.TaskService()))
+	taskGroup.Delete("/:taskID/dependencies/:dependentTaskID", handlers.RemoveTaskDependency(app.TaskService()))
+	taskGroup.Get("/:taskID/dependencies", handlers.GetTaskDependencies(app.TaskService()))
+
 	taskGroup.Post("/:taskID/comments", handlers.CreateTaskComment(app.TaskService()))
 	taskGroup.Get("/:taskID/comments", handlers.TaskCommentsList(app.TaskService()))
 	taskGroup.Get("/:taskID/comments/:id", handlers.GetCommentByID(app.TaskService()))

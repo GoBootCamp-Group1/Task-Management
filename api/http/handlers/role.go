@@ -96,8 +96,9 @@ func GetRoleByID(roleService *services.RoleService) fiber.Handler {
 			return SendError(c, ErrRoleNotFound, fiber.StatusNotFound)
 		}
 
-		log.InfoLog.Println("Role loaded successfully")
-		return c.JSON(role)
+		msg := "Role loaded successfully"
+		log.InfoLog.Println(msg)
+		return SendSuccessResponse(c, msg, role)
 	}
 }
 
@@ -184,8 +185,9 @@ func DeleteRole(roleService *services.RoleService) fiber.Handler {
 			log.ErrorLog.Printf("Error deleting role: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("Role deleted successfully")
+		msg := "Role deleted successfully"
+		log.InfoLog.Println(msg)
 
-		return c.SendStatus(fiber.StatusNoContent)
+		return SendSuccessResponse(c, msg, id)
 	}
 }

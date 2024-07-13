@@ -75,7 +75,6 @@ func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 		MsgColumnCreation := "Column created successfully"
 		log.InfoLog.Println(MsgColumnCreation)
 
-		// todo: sending response should handle better
 		return SendSuccessResponse(
 			c,
 			MsgColumnCreation,
@@ -113,9 +112,10 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 			log.ErrorLog.Printf("Error getting column: %v\n", err)
 			return SendError(c, ErrColumnNotFound, fiber.StatusNotFound)
 		}
-		log.InfoLog.Println("Column loaded successfully")
+		msg := "Column loaded successfully"
+		log.InfoLog.Println(msg)
 
-		return c.JSON(column)
+		return SendSuccessResponse(c, msg, column)
 	}
 }
 
@@ -138,14 +138,17 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam, fiber.StatusBadRequest)
 		}
 
-		columns, err := columnService.GetAllColumns(c.Context(), uint(boardId))
+		page, pageSize := PageAndPageSize(c)
+
+		columns, err := columnService.GetAllColumns(c.Context(), uint(boardId), page, pageSize)
 		if err != nil {
 			log.ErrorLog.Printf("Error getting all columns: %v\n", err)
 			return SendError(c, err, 0)
 		}
-		log.InfoLog.Println("Columns loaded successfully")
+		msg := "Columns loaded successfully"
+		log.InfoLog.Println(msg)
 
-		return c.JSON(columns)
+		return SendSuccessResponse(c, msg, columns)
 	}
 }
 

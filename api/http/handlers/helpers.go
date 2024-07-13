@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
@@ -53,6 +54,25 @@ func SendSuccessPaginateResponse(c *fiber.Ctx, message string, data any, page ui
 }
 
 func SendError(c *fiber.Ctx, err error, status int) error {
+	fiberError, ok := err.(*fiber.Error)
+	if !ok {
+		panic("Unknown Error")
+	}
+	if fiberError.Code == 0 {
+		fiberError.Code = fiber.StatusInternalServerError
+	}
+
+	c.Locals(valuecontext.IsTxError, err)
+
+	response := Response{
+		Success: false,
+		Status:  fiberError.Code,
+		Message: fiberError.Message,
+	}
+	return c.Status(fiberError.Code).JSON(response)
+}
+
+func OldSendError(c *fiber.Ctx, err error, status int) error {
 	if status == 0 {
 		status = fiber.StatusInternalServerError
 	}
@@ -97,13 +117,13 @@ func ValidateAndFill(c *fiber.Ctx, input any) error {
 	validate := validation.NewValidator()
 
 	if err := c.BodyParser(&input); err != nil {
-		return SendError(c, err, fiber.StatusBadRequest)
+		return OldSendError(c, err, fiber.StatusBadRequest)
 	}
 
 	err := validate.Struct(input)
 	if err != nil {
 		fmt.Printf("%+v\n", err)
-		return SendError(c, err, fiber.StatusBadRequest)
+		return OldSendError(c, err, fiber.StatusBadRequest)
 	}
 
 	return nil
