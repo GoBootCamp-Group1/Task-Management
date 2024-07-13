@@ -6,7 +6,8 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
-	"log"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
+
 	"time"
 )
 
@@ -68,8 +69,11 @@ func (s *RoleService) InitRolesInDb(ctx context.Context) error {
 		err := createRoleWithRetry(s, role, ctx)
 		if err != nil {
 			lastErr = err
-			log.Printf("Failed to create role %s: %v", role.Name, err)
+			log.ErrorLog.Printf("Failed to create role %s: %v", role.Name, err)
 		}
+	}
+	if lastErr == nil {
+		log.InfoLog.Printf("Successfully created roles in DB")
 	}
 	return lastErr
 }
@@ -86,7 +90,7 @@ func createRoleWithRetry(s *RoleService, role domains.Role, ctx context.Context)
 				return nil
 			}
 			// Log the error and prepare for retry
-			log.Printf("Attempt %d: Failed to create role %s: %v", i+1, role.Name, err)
+			log.ErrorLog.Printf("Attempt %d: Failed to create role %s: %v", i+1, role.Name, err)
 			lastErr = err
 			time.Sleep(time.Second * time.Duration(i+1)) // Exponential backoff
 		} else {
