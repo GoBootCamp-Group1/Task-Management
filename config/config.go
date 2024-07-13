@@ -13,6 +13,8 @@ type Server struct {
 	TokenExpMinutes        uint   `mapstructure:"token_exp_minutes"`
 	RefreshTokenExpMinutes uint   `mapstructure:"refresh_token_exp_minute"`
 	TokenSecret            string `mapstructure:"token_secret"`
+	MaxRateLimit           int    `mapstructure:"max_rate_limit"`
+	RateLimitExpiration    int    `mapstructure:"rate_limit_expiration"`
 }
 
 type DB struct {

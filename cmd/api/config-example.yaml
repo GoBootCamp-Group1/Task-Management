@@ -4,6 +4,8 @@ server:
   token_exp_minutes: 1440
   refresh_token_exp_minute: 2880 
   token_secret: "P@$$%Secret6677"
+  max_rate_limit: 15
+  rate_limit_expiration: 30
 db:
   user: "postgres"
   pass: "postgres"
