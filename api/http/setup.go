@@ -32,6 +32,11 @@ func Run(cfg config.Server, app *app.Container) {
 
 	api := fiberApp.Group("/api/v1", middlerwares.SetUserContext())
 
+	//add basic role to db
+	if err := app.RoleService().InitRolesInDb(context.Background()); err != nil {
+		log.ErrorLog.Fatal(err)
+	}
+
 	// register global routes
 	routes.InitAuthRoutes(&api, app)
 	routes.InitBoardRoutes(&api, app, cfg)
@@ -47,10 +52,6 @@ func Run(cfg config.Server, app *app.Container) {
 	}
 	log.InfoLog.Println("Starting the application...")
 
-	//add basic role to db
-	if err = app.RoleService().InitRolesInDb(context.Background()); err != nil {
-		log.ErrorLog.Fatal(err)
-	}
 }
 
 func userRoleChecker() fiber.Handler {

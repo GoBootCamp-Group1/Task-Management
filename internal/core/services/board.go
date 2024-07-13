@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"errors"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 )
@@ -13,6 +14,10 @@ type BoardService struct {
 	userRepo        ports.UserRepo
 	roleRepo        ports.RoleRepository
 }
+
+var (
+	ErrUserIsAlreadyBoardMember = errors.New("user is already a board member")
+)
 
 func NewBoardService(boardRepo ports.BoardRepo, boardMemberRepo ports.BoardMemberRepo, userRepo ports.UserRepo, roleRepo ports.RoleRepository) *BoardService {
 	return &BoardService{boardRepo: boardRepo,
@@ -91,4 +96,95 @@ func (s *BoardService) HasRequiredBoardAccess(ctx context.Context, roleW domains
 		return false, fmt.Errorf("access denied")
 	}
 	return true, nil
+}
+
+func (s *BoardService) InviteUserToBoard(ctx context.Context, userId, boardId uint, roleName string) error {
+	// check board existence and get
+	_, err := s.boardRepo.GetByID(ctx, boardId)
+	if err != nil {
+		return err
+	}
+	// check user existence and get
+	_, err = s.userRepo.GetByID(ctx, userId)
+	if err != nil {
+		return err
+	}
+	// check if user is member of board before
+	_, err = s.boardMemberRepo.GetBoardMember(ctx, boardId, userId)
+	if err == nil { // if err is nil, it means that the user is already board member
+		return ErrUserIsAlreadyBoardMember
+	}
+	// check role existence and get
+	role, err := s.roleRepo.GetByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+	// add row to board access and board member
+	boardMember := &domains.BoardMember{
+		BoardID: boardId,
+		UserID:  userId,
+		RoleID:  role.ID,
+	}
+	err = s.boardMemberRepo.Create(ctx, boardMember)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *BoardService) RemoveUserFromBoard(ctx context.Context, userId, boardId uint) error {
+	// check board existence and get
+	_, err := s.boardRepo.GetByID(ctx, boardId)
+	if err != nil {
+		return err
+	}
+	// check user existence and get
+	_, err = s.userRepo.GetByID(ctx, userId)
+	if err != nil {
+		return err
+	}
+	// check if user is member of board before
+	boardMember, err := s.boardMemberRepo.GetBoardMember(ctx, boardId, userId)
+	if err != nil {
+		return err
+	}
+
+	// remove user's board membership
+	if err = s.boardMemberRepo.Delete(ctx, boardMember.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *BoardService) ChangeUserRole(ctx context.Context, userId, boardId uint, roleName string) error {
+	// check board existence and get
+	_, err := s.boardRepo.GetByID(ctx, boardId)
+	if err != nil {
+		return err
+	}
+	// check user existence and get
+	_, err = s.userRepo.GetByID(ctx, userId)
+	if err != nil {
+		return err
+	}
+	// check if user is member of board before
+	boardMember, err := s.boardMemberRepo.GetBoardMember(ctx, boardId, userId)
+	if err != nil {
+		return err
+	}
+	// check role existence and get
+	role, err := s.roleRepo.GetByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+
+	boardMember.RoleID = role.ID
+	// change user role in board
+	if err = s.boardMemberRepo.Update(ctx, boardMember); err != nil {
+		return err
+	}
+
+	return nil
 }

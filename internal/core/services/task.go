@@ -8,16 +8,18 @@ import (
 )
 
 type TaskService struct {
-	repo         ports.TaskRepo
-	notifier     ports.Notifier
-	boardService *BoardService
+	repo          ports.TaskRepo
+	notifier      ports.Notifier
+	boardService  *BoardService
+	columnService *ColumnService
 }
 
-func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService) *TaskService {
+func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService, columnService *ColumnService) *TaskService {
 	return &TaskService{
-		repo:         repo,
-		notifier:     notifier,
-		boardService: boardService,
+		repo:          repo,
+		notifier:      notifier,
+		boardService:  boardService,
+		columnService: columnService,
 	}
 }
 
@@ -120,7 +122,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, userID uint, boardID uint,
 
 	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errUpdate)
+		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errFetch)
 	}
 
 	return taskWithRelations, nil
@@ -143,4 +145,67 @@ func (s *TaskService) DeleteTask(ctx context.Context, userID uint, id uint) erro
 		return fmt.Errorf("repository: can not delete task %w", errDelete)
 	}
 	return nil
+}
+
+func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *domains.Task, newColumnID uint) (*domains.Task, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, task.BoardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	//fetch task info
+	t, errFetch := s.repo.GetByID(ctx, task.ID)
+	if errFetch != nil {
+		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errFetch)
+	}
+
+	newColumn, errFetchColumn := s.columnService.GetColumnById(ctx, newColumnID)
+	if errFetchColumn != nil {
+		return nil, fmt.Errorf("service: can not fetch column info #%d %w", newColumnID, errFetchColumn)
+	}
+
+	//Check for children tasks
+	if newColumn.IsFinal {
+		childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, task.ID)
+		if errFetchChildrenTasks != nil {
+			return nil, fmt.Errorf("repository: can not get children of task: %w", errFetchChildrenTasks)
+		}
+
+		allChildrenFinished := true
+		for _, child := range childrenTasks {
+			if !child.ColumnIsFinal {
+				allChildrenFinished = false
+				break
+			}
+		}
+
+		if !allChildrenFinished {
+			return nil, fmt.Errorf("service: children tasks are not finished yet")
+		}
+	}
+
+	//change column and update
+	t.ColumnID = newColumnID
+	errUpdate := s.repo.Update(ctx, t)
+	if errUpdate != nil {
+		return nil, fmt.Errorf("repository: can not update task: %w", errUpdate)
+	}
+
+	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)
+	if errFetch != nil {
+		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errFetch)
+	}
+
+	return taskWithRelations, nil
+}
+
+func (s *TaskService) GetTaskChildren(ctx context.Context, userID uint, boardID uint, taskID uint) ([]domains.TaskChild, error) {
+	childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, taskID)
+
+	if errFetchChildrenTasks != nil {
+		return nil, fmt.Errorf("repository: can not get children of task: %w", errFetchChildrenTasks)
+	}
+
+	return childrenTasks, nil
 }

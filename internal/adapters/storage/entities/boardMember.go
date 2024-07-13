@@ -6,7 +6,11 @@ import (
 
 type BoardMember struct {
 	gorm.Model
-	BoardID uint `gorm:"index"`
-	UserID  uint `gorm:"index"`
-	RoleID  uint `gorm:"index"`
+	BoardID uint
+	UserID  uint
+	RoleID  uint
+}
+
+func (BoardMember) TableName() string {
+	return "board_users"
 }

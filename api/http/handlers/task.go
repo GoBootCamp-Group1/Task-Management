@@ -119,7 +119,7 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 // @Tags Task
 // @Produce json
 // @Param   id      path     string  true  "Task ID"
-// @Success 200 {object} domains.Task
+// @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
@@ -172,7 +172,7 @@ func GetTaskByID(taskService *services.TaskService) fiber.Handler {
 // @Tags Task
 // @Produce json
 // @Param   boardID  path     string  true  "Board ID"
-// @Success 200 {array} presenter.TaskPresenter
+// @Success 200 {array} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
@@ -335,7 +335,7 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 		//Get User ID
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
-			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			log.ErrorLog.Printf("Error loading task: %v\n", errUserID)
 			return SendError(c, errUserID, fiber.StatusInternalServerError)
 		}
 
@@ -347,5 +347,129 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 		log.InfoLog.Println("Task deleted successfully")
 
 		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+// GetTaskChildren get a list of task children
+// @Summary Get TaskChildren
+// @Description get list of a task children
+// @Tags Task
+// @Produce json
+// @Param   id      path     string  true  "Task ID"
+// @Success 204
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{id}/children [get]
+// @Security ApiKeyAuth
+func GetTaskChildren(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := c.ParamsInt("id")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		children, errFetchChildren := taskService.GetTaskChildren(c.Context(), userID, uint(boardID), uint(id))
+		if errFetchChildren != nil {
+			log.ErrorLog.Printf("Error loading children: %v\n", errFetchChildren)
+			return SendError(c, errFetchChildren, fiber.StatusInternalServerError)
+		}
+
+		//generate response data
+		childrenPresenters := make([]*presenter.TaskChildPresenter, len(children))
+		for i, task := range children {
+			childrenPresenters[i] = presenter.NewTaskChildPresenter(&task)
+		}
+
+		return SendSuccessResponse(
+			c,
+			"Successfully fetched.",
+			childrenPresenters,
+		)
+	}
+}
+
+type ColumnChangeRequest struct {
+	NewColumnID uint `json:"new_column_id" validate:"required,gte=1" example:"1"`
+}
+
+// ChangeTaskColumn updates task column
+// @Summary Update Task column
+// @Description updates a task column
+// @Tags Task
+// @Accept  json
+// @Produce json
+// @Param   boardID      path     string  true  "Board ID"
+// @Param   taskID      path     string  true  "Task ID"
+// @Param   body  body      ColumnChangeRequest  true  "Update Task Column"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/column [patch]
+// @Security ApiKeyAuth
+func ChangeTaskColumn(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		var input ColumnChangeRequest
+
+		err := ValidateAndFill(c, &input)
+		if err != nil {
+			return err
+		}
+
+		id, err := c.ParamsInt("id")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		taskModel := domains.Task{
+			ID:      uint(id),
+			BoardID: uint(boardID),
+		}
+
+		updatedTask, err := taskService.ChangeTaskColumn(c.Context(), userID, &taskModel, input.NewColumnID)
+		if err != nil {
+			log.ErrorLog.Printf("Error updating task: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		if updatedTask == nil {
+			return SendError(c, ErrTaskNotFound, fiber.StatusNotFound)
+		}
+
+		log.InfoLog.Println("Task updated successfully")
+
+		return SendSuccessResponse(
+			c,
+			"Successfully updated.",
+			presenter.NewTaskPresenter(updatedTask),
+		)
 	}
 }

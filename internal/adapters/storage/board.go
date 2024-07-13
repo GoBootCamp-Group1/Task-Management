@@ -48,9 +48,6 @@ func (r *boardRepo) GetByID(ctx context.Context, id uint) (*domains.Board, error
 	var b entities.Board
 	err := r.db.WithContext(ctx).Model(&entities.Board{}).Where("id = ?", id).First(&b).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, err
 	}
 	return mappers.BoardEntityToDomain(&b), nil
