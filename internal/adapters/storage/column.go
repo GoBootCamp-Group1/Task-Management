@@ -73,9 +73,6 @@ func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, err
 	var column entities.Column
 	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: id}}).First(&column).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, err
 	}
 
@@ -83,15 +80,15 @@ func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, err
 }
 
 func (r *columnRepo) GetAll(ctx context.Context, boardId uint) ([]*domains.Column, error) {
-	var entitieColumns []entities.Column
+	var columnEntities []entities.Column
 
-	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC").Find(&entitieColumns).Error
+	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC").Find(&columnEntities).Error
 	if err != nil {
 		return nil, err
 	}
 
-	columns := make([]*domains.Column, len(entitieColumns))
-	for i, c := range entitieColumns {
+	columns := make([]*domains.Column, len(columnEntities))
+	for i, c := range columnEntities {
 		columns[i] = mappers.ColumnEntityToDomain(&c)
 	}
 

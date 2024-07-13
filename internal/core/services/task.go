@@ -14,11 +14,12 @@ type TaskService struct {
 	columnService *ColumnService
 }
 
-func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService) *TaskService {
+func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService, columnService *ColumnService) *TaskService {
 	return &TaskService{
-		repo:         repo,
-		notifier:     notifier,
-		boardService: boardService,
+		repo:          repo,
+		notifier:      notifier,
+		boardService:  boardService,
+		columnService: columnService,
 	}
 }
 
@@ -164,9 +165,24 @@ func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *d
 		return nil, fmt.Errorf("service: can not fetch column info #%d %w", newColumnID, errFetchColumn)
 	}
 
+	//Check for children tasks
 	if newColumn.IsFinal {
-		//TODO: if is final, check for children and dependencies
-		//childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, task.ID)
+		childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, task.ID)
+		if errFetchChildrenTasks != nil {
+			return nil, fmt.Errorf("repository: can not get children of task: %w", errFetchChildrenTasks)
+		}
+
+		allChildrenFinished := true
+		for _, child := range childrenTasks {
+			if !child.ColumnIsFinal {
+				allChildrenFinished = false
+				break
+			}
+		}
+
+		if !allChildrenFinished {
+			return nil, fmt.Errorf("service: children tasks are not finished yet")
+		}
 	}
 
 	//change column and update
@@ -184,16 +200,12 @@ func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *d
 	return taskWithRelations, nil
 }
 
-func (s *TaskService) GetTaskChildren(ctx context.Context, userID uint, boardID uint, taskID uint) ([]domains.Task, error) {
+func (s *TaskService) GetTaskChildren(ctx context.Context, userID uint, boardID uint, taskID uint) ([]domains.TaskChild, error) {
 	childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, taskID)
 
 	if errFetchChildrenTasks != nil {
 		return nil, fmt.Errorf("repository: can not get children of task: %w", errFetchChildrenTasks)
 	}
 
-	for _, task := range childrenTasks {
-		fmt.Printf("ID: %d\n", task.ID)
-	}
-
-	return nil, nil
+	return childrenTasks, nil
 }

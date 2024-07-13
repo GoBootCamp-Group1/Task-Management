@@ -39,8 +39,8 @@ func NewAppContainer(cfg config.Config) (*Container, error) {
 	app.setUserService()
 	app.setAuthService()
 	app.setBoardService()
-	app.setTaskService()
 	app.setColumnService()
+	app.setTaskService()
 	app.setNotificationService()
 
 	return app, nil
@@ -163,7 +163,7 @@ func (a *Container) setTaskService() {
 	}
 	taskRepository := storage.NewTaskRepo(a.dbConn)
 	notifierAdapter := notifier.NewNotifierAdapter(a.notifier)
-	a.taskService = services.NewTaskService(taskRepository, notifierAdapter, a.boardService)
+	a.taskService = services.NewTaskService(taskRepository, notifierAdapter, a.boardService, a.columnService)
 }
 
 func (a *Container) setColumnService() {

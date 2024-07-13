@@ -19,4 +19,6 @@ func InitTaskRoutes(router *fiber.Router, app *app.Container, cfg config.Server)
 	taskGroup.Get("/:id", handlers.GetTaskByID(app.TaskService()))
 	taskGroup.Get("/:id/children", handlers.GetTaskChildren(app.TaskService()))
 	taskGroup.Delete("/:id", handlers.DeleteTask(app.TaskService()))
+
+	taskGroup.Patch("/:id/column", handlers.ChangeTaskColumn(app.TaskService()))
 }
