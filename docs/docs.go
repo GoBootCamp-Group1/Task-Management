@@ -143,6 +143,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/boards/{boardID}/tasks/{id}/children": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get list of a task children",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Get TaskChildren",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/boards/{boardID}/tasks/{taskID}": {
             "get": {
                 "security": [
@@ -223,6 +260,390 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/boards/{boardID}/tasks/{taskID}/column": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "updates a task column",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Update Task column",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Task Column",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ColumnChangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/boards/{boardID}/tasks/{taskID}/comments": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "gets comments for a task",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Get Tasks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "creates a task comment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Create Task comment",
+                "parameters": [
+                    {
+                        "description": "Create Task Comment",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TaskCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/boards/{boardID}/tasks/{taskID}/comments/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "gets a task comment",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Get Comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "deleted a comment",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Delete Comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/boards/{boardID}/tasks/{taskID}/dependencies": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "retrieves the dependencies for a given task",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Get Task Dependencies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domains.TaskDependency"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/boards/{boardID}/tasks/{taskID}/dependencies/{dependentTaskID}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "adds a dependency between two tasks",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Add Task Dependency",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Dependent Task ID",
+                        "name": "dependentTaskID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "removes a dependency between two tasks",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Remove Task Dependency",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Dependent Task ID",
+                        "name": "dependentTaskID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request"
@@ -508,7 +929,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/columns": {
+        "/columns/{boardId}": {
             "get": {
                 "security": [
                     {
@@ -523,11 +944,20 @@ const docTemplate = `{
                     "Column"
                 ],
                 "summary": "Get Columns",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domains.Column"
+                            "$ref": "#/definitions/handlers.Response"
                         }
                     },
                     "400": {
@@ -540,9 +970,7 @@ const docTemplate = `{
                         "description": "Internal Server Error"
                     }
                 }
-            }
-        },
-        "/columns/{boardId}": {
+            },
             "post": {
                 "security": [
                     {
@@ -619,7 +1047,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domains.Column"
+                            "$ref": "#/definitions/handlers.Response"
                         }
                     },
                     "400": {
@@ -664,7 +1092,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.UpdateColumnRequest"
                         }
                     }
                 ],
@@ -672,7 +1100,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domains.Column"
+                            "$ref": "#/definitions/handlers.Response"
                         }
                     },
                     "400": {
@@ -756,7 +1184,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domains.Column"
+                            "$ref": "#/definitions/handlers.Response"
                         }
                     },
                     "400": {
@@ -799,11 +1227,11 @@ const docTemplate = `{
                     },
                     {
                         "description": "new position of column [id]",
-                        "name": "order_position",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "number"
+                            "$ref": "#/definitions/handlers.MoveColumnRequest"
                         }
                     }
                 ],
@@ -811,7 +1239,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domains.Column"
+                            "$ref": "#/definitions/handlers.Response"
                         }
                     },
                     "400": {
@@ -1360,29 +1788,6 @@ const docTemplate = `{
                 }
             }
         },
-        "domains.Column": {
-            "type": "object",
-            "properties": {
-                "board_id": {
-                    "type": "integer"
-                },
-                "created_by": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_final": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "order_position": {
-                    "type": "integer"
-                }
-            }
-        },
         "domains.Notification": {
             "type": "object",
             "properties": {
@@ -1432,6 +1837,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domains.TaskDependency": {
+            "type": "object",
+            "properties": {
+                "dependentTaskID": {
+                    "type": "integer"
+                },
+                "taskID": {
+                    "type": "integer"
+                }
+            }
+        },
         "domains.User": {
             "type": "object",
             "properties": {
@@ -1468,6 +1884,19 @@ const docTemplate = `{
             "properties": {
                 "role_name": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.ColumnChangeRequest": {
+            "type": "object",
+            "required": [
+                "new_column_id"
+            ],
+            "properties": {
+                "new_column_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
                 }
             }
         },
@@ -1561,6 +1990,19 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.MoveColumnRequest": {
+            "type": "object",
+            "required": [
+                "position"
+            ],
+            "properties": {
+                "position": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 2
+                }
+            }
+        },
         "handlers.Response": {
             "type": "object",
             "properties": {
@@ -1610,6 +2052,20 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.TaskCommentRequest": {
+            "type": "object",
+            "required": [
+                "comment"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3,
+                    "example": "new comment"
+                }
+            }
+        },
         "handlers.TaskRequest": {
             "type": "object"
         },
@@ -1628,6 +2084,20 @@ const docTemplate = `{
                     "maxLength": 50,
                     "minLength": 3,
                     "example": "new board"
+                }
+            }
+        },
+        "handlers.UpdateColumnRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3,
+                    "example": "new column"
                 }
             }
         },

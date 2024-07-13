@@ -11,21 +11,6 @@ definitions:
       name:
         type: string
     type: object
-  domains.Column:
-    properties:
-      board_id:
-        type: integer
-      created_by:
-        type: integer
-      id:
-        type: integer
-      is_final:
-        type: boolean
-      name:
-        type: string
-      order_position:
-        type: integer
-    type: object
   domains.Notification:
     properties:
       createdAt:
@@ -58,6 +43,13 @@ definitions:
       weight:
         type: integer
     type: object
+  domains.TaskDependency:
+    properties:
+      dependentTaskID:
+        type: integer
+      taskID:
+        type: integer
+    type: object
   domains.User:
     properties:
       email:
@@ -83,6 +75,15 @@ definitions:
     properties:
       role_name:
         type: string
+    type: object
+  handlers.ColumnChangeRequest:
+    properties:
+      new_column_id:
+        example: 1
+        minimum: 1
+        type: integer
+    required:
+    - new_column_id
     type: object
   handlers.CreateBoardRequest:
     properties:
@@ -149,6 +150,15 @@ definitions:
     - email
     - password
     type: object
+  handlers.MoveColumnRequest:
+    properties:
+      position:
+        example: 2
+        minimum: 0
+        type: integer
+    required:
+    - position
+    type: object
   handlers.Response:
     properties:
       data: {}
@@ -184,6 +194,16 @@ definitions:
     - name
     - password
     type: object
+  handlers.TaskCommentRequest:
+    properties:
+      comment:
+        example: new comment
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - comment
+    type: object
   handlers.TaskRequest:
     type: object
   handlers.UpdateBoardRequest:
@@ -194,6 +214,16 @@ definitions:
       name:
         example: new board
         maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - name
+    type: object
+  handlers.UpdateColumnRequest:
+    properties:
+      name:
+        example: new column
+        maxLength: 20
         minLength: 3
         type: string
     required:
@@ -383,6 +413,29 @@ paths:
       summary: Delete Task
       tags:
       - Task
+  /boards/{boardID}/tasks/{id}/children:
+    get:
+      description: get list of a task children
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get TaskChildren
+      tags:
+      - Task
   /boards/{boardID}/tasks/{taskID}:
     get:
       description: gets a task
@@ -438,6 +491,252 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update Task
+      tags:
+      - Task
+  /boards/{boardID}/tasks/{taskID}/column:
+    patch:
+      consumes:
+      - application/json
+      description: updates a task column
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardID
+        required: true
+        type: string
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: string
+      - description: Update Task Column
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ColumnChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Update Task column
+      tags:
+      - Task
+  /boards/{boardID}/tasks/{taskID}/comments:
+    get:
+      description: gets comments for a task
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardID
+        required: true
+        type: string
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Response'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Tasks
+      tags:
+      - Task
+    post:
+      consumes:
+      - application/json
+      description: creates a task comment
+      parameters:
+      - description: Create Task Comment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TaskCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create Task comment
+      tags:
+      - Task
+  /boards/{boardID}/tasks/{taskID}/comments/{id}:
+    delete:
+      description: deleted a comment
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardID
+        required: true
+        type: string
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: string
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Comment
+      tags:
+      - Task
+    get:
+      description: gets a task comment
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardID
+        required: true
+        type: string
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: string
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Comment
+      tags:
+      - Task
+  /boards/{boardID}/tasks/{taskID}/dependencies:
+    get:
+      consumes:
+      - application/json
+      description: retrieves the dependencies for a given task
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domains.TaskDependency'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Task Dependencies
+      tags:
+      - Task
+  /boards/{boardID}/tasks/{taskID}/dependencies/{dependentTaskID}:
+    delete:
+      consumes:
+      - application/json
+      description: removes a dependency between two tasks
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: integer
+      - description: Dependent Task ID
+        in: path
+        name: dependentTaskID
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Remove Task Dependency
+      tags:
+      - Task
+    post:
+      consumes:
+      - application/json
+      description: adds a dependency between two tasks
+      parameters:
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: integer
+      - description: Dependent Task ID
+        in: path
+        name: dependentTaskID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Add Task Dependency
       tags:
       - Task
   /boards/{id}:
@@ -550,16 +849,22 @@ paths:
       summary: Invite User to Board
       tags:
       - Board
-  /columns:
+  /columns/{boardId}:
     get:
       description: gets all columns of a bard
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domains.Column'
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
         "404":
@@ -571,7 +876,6 @@ paths:
       summary: Get Columns
       tags:
       - Column
-  /columns/{boardId}:
     post:
       consumes:
       - application/json
@@ -641,7 +945,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domains.Column'
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
         "404":
@@ -668,14 +972,14 @@ paths:
         name: name
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/handlers.UpdateColumnRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domains.Column'
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
         "404":
@@ -704,7 +1008,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domains.Column'
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
         "404":
@@ -729,17 +1033,17 @@ paths:
         type: string
       - description: new position of column [id]
         in: body
-        name: order_position
+        name: body
         required: true
         schema:
-          type: number
+          $ref: '#/definitions/handlers.MoveColumnRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domains.Column'
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
         "404":
