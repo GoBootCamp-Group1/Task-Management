@@ -344,9 +344,10 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 			log.ErrorLog.Printf("Error deleting task: %v\n", err)
 			return SendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("Task deleted successfully")
+		msg := "Task deleted successfully"
+		log.InfoLog.Println(msg)
 
-		return c.SendStatus(fiber.StatusNoContent)
+		return SendSuccessResponse(c, msg, id)
 	}
 }
 
