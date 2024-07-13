@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"path/filepath"
 
 	"github.com/spf13/viper"
@@ -36,9 +37,21 @@ func absPath(cfgPath string) (string, error) {
 }
 
 func MustReadStandard(configPath string) Config {
-	cfg, err := ReadStandard(configPath)
+	cfg, err := ReadConfig(configPath)
 	if err != nil {
 		panic(err)
 	}
 	return cfg
+}
+
+func ReadConfig(defaultCfgPath string) (Config, error) {
+	configPath := flag.String("config", "", "path to the config file")
+
+	flag.Parse()
+
+	if *configPath == "" {
+		*configPath = defaultCfgPath
+	}
+
+	return ReadStandard(*configPath)
 }
