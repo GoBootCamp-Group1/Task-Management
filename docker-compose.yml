@@ -2,6 +2,9 @@ version: '3.8'
 
 services:
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: task-management:1.0
     container_name: task-management-app
     ports:
