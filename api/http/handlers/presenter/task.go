@@ -20,6 +20,7 @@ type TaskPresenter struct {
 	Creator       *UserPresenter           `json:"creator"`
 	Column        *ColumnOutBoundPresenter `json:"column"`
 	Parent        *TaskPresenter           `json:"parent"`
+	Assignee      *UserPresenter           `json:"assignee"`
 }
 
 func NewTaskPresenter(task *domains.Task) *TaskPresenter {
@@ -39,6 +40,11 @@ func NewTaskPresenter(task *domains.Task) *TaskPresenter {
 		parent = NewTaskPresenter(task.Parent)
 	}
 
+	var assignee *UserPresenter
+	if task.Assignee != nil {
+		assignee = NewUserPresenter(task.Assignee)
+	}
+
 	return &TaskPresenter{
 		ID:            task.ID,
 		CreatedAt:     task.CreatedAt,
@@ -53,5 +59,6 @@ func NewTaskPresenter(task *domains.Task) *TaskPresenter {
 		Creator:       creator,
 		Column:        column,
 		Parent:        parent,
+		Assignee:      assignee,
 	}
 }

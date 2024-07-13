@@ -20,14 +20,15 @@ func NewTaskRepo(db *gorm.DB) ports.TaskRepo {
 	}
 }
 
-func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]*domains.Task, uint, error) {
-	var taskEntities []*entities.Task
+func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uint, offset uint) ([]domains.Task, uint, error) {
+	var taskEntities []entities.Task
 
 	query := r.db.WithContext(ctx).
 		Model(&entities.Task{}).
 		Where("board_id = ?", boardID).
 		Preload("Board").
 		Preload("Column").
+		Preload("Assignee").
 		Preload("Creator")
 
 	//calculate total entities
@@ -54,11 +55,7 @@ func (r *taskRepo) GetListByBoardID(ctx context.Context, boardID uint, limit uin
 		return nil, 0, err
 	}
 
-	var taskModels []*domains.Task
-	for _, taskEntity := range taskEntities {
-		model := mappers.TaskEntityToDomain(taskEntity)
-		taskModels = append(taskModels, model)
-	}
+	taskModels := mappers.TaskEntitiesToDomain(taskEntities)
 
 	return taskModels, uint(total), nil
 }
@@ -87,6 +84,7 @@ func (r *taskRepo) GetByID(ctx context.Context, id uint) (*domains.Task, error) 
 		Preload("Board").
 		Preload("Creator").
 		Preload("Column").
+		Preload("Assignee").
 		//TODO:additional relations
 		First(&task).Error
 	if err != nil {

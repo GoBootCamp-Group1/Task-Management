@@ -26,5 +26,5 @@ type Task struct {
 	Creator       *User
 	Column        *Column
 	Parent        *Task
-	//Assignee    *User
+	Assignee      *User
 }
