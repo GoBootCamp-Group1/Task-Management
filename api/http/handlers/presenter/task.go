@@ -36,10 +36,10 @@ func NewTaskPresenter(task *domains.Task) *TaskPresenter {
 		column = NewColumnOutBoundPresenter(task.Column)
 	}
 
-	var parent *TaskPresenter
-	if task.Parent != nil {
-		parent = NewTaskPresenter(task.Parent)
-	}
+	//var parent *TaskPresenter
+	//if task.Parent != nil {
+	//	parent = NewTaskPresenter(task.Parent)
+	//}
 
 	var assignee *UserPresenter
 	if task.Assignee != nil {
@@ -59,8 +59,30 @@ func NewTaskPresenter(task *domains.Task) *TaskPresenter {
 		Additional:    task.Additional,
 		Creator:       creator,
 		Column:        column,
-		Parent:        parent,
-		Assignee:      assignee,
+		//Parent:        parent,
+		Assignee: assignee,
+	}
+}
+
+type TaskChildPresenter struct {
+	ID            uint      `json:"id"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	ColumnName    string    `json:"column_name"`
+	ColumnIsFinal bool      `json:"column_is_final"`
+}
+
+func NewTaskChildPresenter(task *domains.TaskChild) *TaskChildPresenter {
+	return &TaskChildPresenter{
+		ID:            task.ID,
+		CreatedAt:     task.CreatedAt,
+		UpdatedAt:     task.UpdatedAt,
+		Name:          task.Name,
+		Description:   task.Description,
+		ColumnName:    task.ColumnName,
+		ColumnIsFinal: task.ColumnIsFinal,
 	}
 }
 

@@ -26,8 +26,21 @@ type Task struct {
 	Board         *Board
 	Creator       *User
 	Column        *Column
-	Parent        *Task
-	Assignee      *User
+	//Parent        *Task
+	Assignee *User
+}
+
+type TaskChild struct {
+	ID            uint
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     time.Time
+	ColumnID      uint
+	OrderPosition int
+	Name          string
+	Description   string
+	ColumnName    string
+	ColumnIsFinal bool
 }
 
 type TaskComment struct {

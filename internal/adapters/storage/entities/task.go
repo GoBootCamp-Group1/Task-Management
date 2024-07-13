@@ -30,6 +30,16 @@ type Task struct {
 	Assignee *User  `gorm:"foreignKey:AssigneeID"`
 }
 
+type TaskChild struct {
+	gorm.Model
+	ColumnID      uint
+	OrderPosition int
+	Name          string
+	Description   string
+	ColumnName    string `gorm:"column:column_name"`
+	ColumnIsFinal bool   `gorm:"column:is_final"`
+}
+
 type TaskComment struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt time.Time

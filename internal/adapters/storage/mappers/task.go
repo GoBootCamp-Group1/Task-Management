@@ -33,10 +33,10 @@ func TaskEntityToDomain(entity *entities.Task) *domains.Task {
 		assignee = UserEntityToDomain(entity.Assignee)
 	}
 
-	var parent *domains.Task
-	if entity.ParentID != nil {
-		parent = TaskEntityToDomain(entity.Parent)
-	}
+	//var parent *domains.Task
+	//if entity.ParentID != nil {
+	//	parent = TaskEntityToDomain(entity.Parent)
+	//}
 
 	return &domains.Task{
 		ID:        entity.ID,
@@ -56,10 +56,10 @@ func TaskEntityToDomain(entity *entities.Task) *domains.Task {
 		StoryPoint:    entity.StoryPoint,
 		Additional:    entity.Additional,
 
-		Board:    BoardEntityToDomain(&entity.Board),
-		Creator:  UserEntityToDomain(&entity.Creator),
-		Column:   ColumnEntityToDomain(&entity.Column),
-		Parent:   parent,
+		Board:   BoardEntityToDomain(&entity.Board),
+		Creator: UserEntityToDomain(&entity.Creator),
+		Column:  ColumnEntityToDomain(&entity.Column),
+		//Parent:   parent,
 		Assignee: assignee,
 	}
 }
@@ -73,6 +73,24 @@ func TaskEntitiesToDomain(taskEntities []entities.Task) []domains.Task {
 func TaskDomainsToEntity(taskDomains []domains.Task) []entities.Task {
 	return fp.Map(taskDomains, func(member domains.Task) entities.Task {
 		return *DomainToTaskEntity(&member)
+	})
+}
+
+func TaskChildEntityToDomain(entity *entities.TaskChild) *domains.TaskChild {
+	return &domains.TaskChild{
+		ID:            entity.ID,
+		ColumnID:      entity.ColumnID,
+		OrderPosition: entity.OrderPosition,
+		Name:          entity.Name,
+		Description:   entity.Description,
+		ColumnName:    entity.ColumnName,
+		ColumnIsFinal: entity.ColumnIsFinal,
+	}
+}
+
+func TaskChildEntitiesToDomain(taskEntities []entities.TaskChild) []domains.TaskChild {
+	return fp.Map(taskEntities, func(entity entities.TaskChild) domains.TaskChild {
+		return *TaskChildEntityToDomain(&entity)
 	})
 }
 
