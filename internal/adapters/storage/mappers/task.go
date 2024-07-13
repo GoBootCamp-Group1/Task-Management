@@ -1,6 +1,7 @@
 package mappers
 
 import (
+	"database/sql"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/fp"
@@ -90,5 +91,41 @@ func TaskChildEntityToDomain(entity *entities.TaskChild) *domains.TaskChild {
 func TaskChildEntitiesToDomain(taskEntities []entities.TaskChild) []domains.TaskChild {
 	return fp.Map(taskEntities, func(entity entities.TaskChild) domains.TaskChild {
 		return *TaskChildEntityToDomain(&entity)
+	})
+}
+
+func DomainToCommentEntity(model *domains.TaskComment) *entities.TaskComment {
+	var deletedAt sql.NullTime
+
+	if model.DeletedAt != nil {
+		deletedAt = sql.NullTime{Time: *model.DeletedAt, Valid: true}
+	} else {
+		deletedAt = sql.NullTime{Valid: false}
+	}
+
+	return &entities.TaskComment{
+		ID:        model.ID,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+		DeletedAt: gorm.DeletedAt(deletedAt),
+		UserID:    model.UserID,
+		TaskID:    model.TaskID,
+		Comment:   model.Comment,
+	}
+}
+
+func TaskCommentEntityToDomain(entity *entities.TaskComment) *domains.TaskComment {
+	return &domains.TaskComment{
+		ID:        entity.ID,
+		CreatedAt: entity.CreatedAt,
+		UpdatedAt: entity.UpdatedAt,
+		Comment:   entity.Comment,
+		User:      UserEntityToDomain(&entity.User),
+	}
+}
+
+func TaskCommentEntitiesToDomain(taskEntities []entities.TaskComment) []domains.TaskComment {
+	return fp.Map(taskEntities, func(entity entities.TaskComment) domains.TaskComment {
+		return *TaskCommentEntityToDomain(&entity)
 	})
 }

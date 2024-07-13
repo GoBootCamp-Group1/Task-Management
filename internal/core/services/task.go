@@ -10,18 +10,26 @@ import (
 )
 
 type TaskService struct {
-	repo          ports.TaskRepo
-	notifier      ports.Notifier
-	boardService  *BoardService
-	columnService *ColumnService
+	repo            ports.TaskRepo
+	taskCommentRepo ports.TaskCommentRepo
+	notifier        ports.Notifier
+	boardService    *BoardService
+	columnService   *ColumnService
 }
 
-func NewTaskService(repo ports.TaskRepo, notifier ports.Notifier, boardService *BoardService, columnService *ColumnService) *TaskService {
+func NewTaskService(
+	repo ports.TaskRepo,
+	notifier ports.Notifier,
+	boardService *BoardService,
+	columnService *ColumnService,
+	taskCommentRepo ports.TaskCommentRepo,
+) *TaskService {
 	return &TaskService{
-		repo:          repo,
-		notifier:      notifier,
-		boardService:  boardService,
-		columnService: columnService,
+		repo:            repo,
+		notifier:        notifier,
+		boardService:    boardService,
+		columnService:   columnService,
+		taskCommentRepo: taskCommentRepo,
 	}
 }
 
@@ -265,4 +273,75 @@ func isReachable(graph map[uint][]uint, visited map[uint]bool, current, target u
 		}
 	}
 	return false
+}
+
+func (s *TaskService) CreateComment(ctx context.Context, userID uint, boardID uint, taskComment *domains.TaskComment) (*domains.TaskComment, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, boardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	//create task comment
+	errCreate := s.taskCommentRepo.Create(ctx, taskComment)
+	if errCreate != nil {
+		return nil, fmt.Errorf("repository: can not create comment: %w", errCreate)
+	}
+
+	//load comment
+	comment, errFetch := s.taskCommentRepo.GetByID(ctx, taskComment.ID.String())
+	if errFetch != nil {
+		return nil, fmt.Errorf("repository: can not fetch comment #%d: %w", taskComment.ID, errFetch)
+	}
+
+	return comment, nil
+}
+
+func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID uint, taskID uint, pageNumber uint, pageSize uint) ([]domains.TaskComment, uint, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
+	if !hasAccess {
+		return nil, 0, fmt.Errorf("access denied")
+	}
+
+	//pagination calculate
+	limit := pageSize
+	offset := (pageNumber - 1) * pageSize
+
+	//create task comment
+	comments, total, errFetch := s.taskCommentRepo.GetListByTaskID(ctx, taskID, limit, offset)
+	if errFetch != nil {
+		return nil, 0, fmt.Errorf("repository: can not fetch comments: %w", errFetch)
+	}
+
+	return comments, total, nil
+}
+
+func (s *TaskService) GetTaskComment(ctx context.Context, userID uint, boardID uint, taskID uint, commentID string) (*domains.TaskComment, error) {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	//create task comment
+	comment, errFetch := s.taskCommentRepo.GetByID(ctx, commentID)
+	if errFetch != nil {
+		return nil, fmt.Errorf("repository: can not fetch comment: %w", errFetch)
+	}
+
+	return comment, nil
+}
+
+func (s *TaskService) DeleteComment(ctx context.Context, userID uint, boardID uint, taskID uint, id string) error {
+	//check permissions
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, boardID)
+	if !hasAccess {
+		return fmt.Errorf("access denied")
+	}
+	errDelete := s.taskCommentRepo.Delete(ctx, id)
+	if errDelete != nil {
+		return fmt.Errorf("repository: can not delete comment %w", errDelete)
+	}
+	return nil
 }
