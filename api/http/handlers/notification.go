@@ -259,8 +259,9 @@ func DeleteNotification(NotificationService *services.NotificationService) fiber
 			log.ErrorLog.Printf("Error deleting Notification: %v\n", err)
 			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("Notification deleted successfully")
+		msg := "Notification deleted successfully"
+		log.InfoLog.Println(msg)
 
-		return c.SendStatus(fiber.StatusNoContent)
+		return SendSuccessResponse(c, msg, id)
 	}
 }

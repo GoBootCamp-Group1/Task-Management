@@ -103,8 +103,9 @@ func GetBoardByID(boardService *services.BoardService) fiber.Handler {
 			return OldSendError(c, ErrBoardNotFound, fiber.StatusNotFound)
 		}
 
-		log.InfoLog.Println("Board loaded successfully")
-		return c.JSON(board)
+		msg := "Board loaded successfully"
+		log.InfoLog.Println(msg)
+		return SendSuccessResponse(c, msg, board)
 	}
 }
 
@@ -189,9 +190,10 @@ func DeleteBoard(boardService *services.BoardService) fiber.Handler {
 			log.ErrorLog.Printf("Error deleting board: %v\n", err)
 			return OldSendError(c, err, fiber.StatusInternalServerError)
 		}
-		log.InfoLog.Println("Board deleted successfully")
+		msg := "Board deleted successfully"
+		log.InfoLog.Println(msg)
 
-		return c.SendStatus(fiber.StatusNoContent)
+		return SendSuccessResponse(c, msg, id)
 	}
 }
 
