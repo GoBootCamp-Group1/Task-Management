@@ -3,8 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
+	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 )
 
 type TaskService struct {
@@ -143,4 +145,53 @@ func (s *TaskService) DeleteTask(ctx context.Context, userID uint, id uint) erro
 		return fmt.Errorf("repository: can not delete task %w", errDelete)
 	}
 	return nil
+}
+
+func (s *TaskService) AddTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
+
+	var existingDependencies []entities.TaskDependency
+	existingDependencies, err := s.repo.GetAllTaskDependencies(ctx)
+	if err != nil {
+		log.ErrorLog.Printf("Error fetching dependencies from database: %v", err)
+	}
+
+	// Create a map to store adjacency list representation of the graph
+	graph := make(map[uint][]uint)
+	for _, dep := range existingDependencies {
+		graph[dep.TaskID] = append(graph[dep.TaskID], dep.DependentTaskID)
+	}
+
+	// Start the cycle detection from the taskID and check if it reaches dependentTaskID
+	if hasCycle(graph, taskID, dependentTaskID) {
+		return fmt.Errorf("adding this dependency would create a cycle")
+	}
+
+	return s.repo.AddTaskDependency(ctx, taskID, dependentTaskID)
+}
+func (s *TaskService) RemoveTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
+	return s.repo.RemoveTaskDependency(ctx, taskID, dependentTaskID)
+}
+
+// hasCycle checks if adding tid -> dtid would create a cycle in the graph
+func hasCycle(graph map[uint][]uint, tid, dtid uint) bool {
+	visited := make(map[uint]bool)
+	return isReachable(graph, visited, tid, dtid)
+}
+
+// isReachable checks if dtid is reachable from tid using DFS
+func isReachable(graph map[uint][]uint, visited map[uint]bool, current, target uint) bool {
+	if current == target {
+		return true
+	}
+
+	visited[current] = true
+	for _, neighbor := range graph[current] {
+		if !visited[neighbor] && isReachable(graph, visited, neighbor, target) {
+			return true
+		} else if visited[neighbor] && neighbor == target {
+			// Found a cycle
+			return true
+		}
+	}
+	return false
 }

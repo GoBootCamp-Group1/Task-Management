@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
@@ -133,4 +134,48 @@ func (r *taskRepo) Delete(ctx context.Context, id uint) error {
 	}
 
 	return r.db.WithContext(ctx).Model(&entities.Task{}).Delete(&existingTask).Error
+}
+
+func (r *taskRepo) GetTaskDependencies(ctx context.Context, taskID uint) ([]*entities.TaskDependency, error) {
+	var dependencies []*entities.TaskDependency
+	err := r.db.WithContext(ctx).Where("task_id = ?", taskID).Find(&dependencies).Error
+	return dependencies, err
+}
+
+func (r *taskRepo) AddTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
+	exists, err := r.DependencyExists(ctx, taskID, dependentTaskID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("dependency already exists")
+	}
+	dependency := entities.TaskDependency{TaskID: taskID, DependentTaskID: dependentTaskID}
+	return r.db.WithContext(ctx).Create(&dependency).Error
+}
+
+func (r *taskRepo) RemoveTaskDependency(ctx context.Context, taskID, dependentTaskID uint) error {
+	exists, err := r.DependencyExists(ctx, taskID, dependentTaskID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("dependency does not exist")
+	}
+	return r.db.WithContext(ctx).Where("task_id = ? AND dependent_task_id = ?", taskID, dependentTaskID).Delete(&entities.TaskDependency{}).Error
+}
+
+func (r *taskRepo) DependencyExists(ctx context.Context, taskID, dependentTaskID uint) (bool, error) {
+	var dependencies []*entities.TaskDependency
+	err := r.db.WithContext(ctx).Where("task_id = ? AND dependent_task_id = ?", taskID, dependentTaskID).Find(&dependencies).Error
+	return dependencies != nil, err
+}
+
+func (r *taskRepo) GetAllTaskDependencies(ctx context.Context) ([]entities.TaskDependency, error) {
+	var dependencies []entities.TaskDependency
+	result := r.db.WithContext(ctx).Find(&dependencies)
+	if result.Error != nil {
+		return nil, fmt.Errorf("error fetching task dependencies: %v", result.Error)
+	}
+	return dependencies, nil
 }

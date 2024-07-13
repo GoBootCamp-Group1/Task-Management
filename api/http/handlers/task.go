@@ -349,3 +349,81 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 }
+
+// AddTaskDependency adds a dependency between two tasks
+// @Summary Add Task Dependency
+// @Description adds a dependency between two tasks
+// @Tags Task
+// @Accept  json
+// @Param   taskID  path   uint  true  "Task ID"
+// @Param   dependentTaskID  path   uint  true  "Dependent Task ID"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/dependencies/{dependentTaskID} [post]
+// @Security ApiKeyAuth
+func AddTaskDependency(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Parse taskID and dependentTaskID from path parameters
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing taskID: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		dependentTaskID, err := c.ParamsInt("dependentTaskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing dependentTaskID: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		// Add task dependency
+		err = taskService.AddTaskDependency(c.Context(), uint(taskID), uint(dependentTaskID))
+		if err != nil {
+			log.ErrorLog.Printf("Error adding task dependency: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		log.InfoLog.Printf("Added dependency from task #%d to task #%d", taskID, dependentTaskID)
+		return SendSuccessResponse(c, "Task dependency added successfully", nil)
+	}
+}
+
+// RemoveTaskDependency removes a dependency between two tasks
+// @Summary Remove Task Dependency
+// @Description removes a dependency between two tasks
+// @Tags Task
+// @Accept  json
+// @Param   taskID  path   uint  true  "Task ID"
+// @Param   dependentTaskID  path   uint  true  "Dependent Task ID"
+// @Success 204
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/dependencies/{dependentTaskID} [delete]
+// @Security ApiKeyAuth
+func RemoveTaskDependency(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Parse taskID and dependentTaskID from path parameters
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing taskID: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		dependentTaskID, err := c.ParamsInt("dependentTaskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing dependentTaskID: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		// Remove task dependency
+		err = taskService.RemoveTaskDependency(c.Context(), uint(taskID), uint(dependentTaskID))
+		if err != nil {
+			log.ErrorLog.Printf("Error removing task dependency: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		log.InfoLog.Printf("Removed dependency from task #%d to task #%d", taskID, dependentTaskID)
+		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
