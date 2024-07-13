@@ -9,7 +9,7 @@ import (
 )
 
 func InitRoleRoutes(router *fiber.Router, container *app.Container, cfg config.Server) {
-	roleGroup := (*router).Group("/role", middlerwares.Auth([]byte(cfg.TokenSecret)))
+	roleGroup := (*router).Group("/roles", middlerwares.Auth([]byte(cfg.TokenSecret)))
 	roleGroup.Post("", handlers.CreateRole(container.RoleService()))
 	roleGroup.Put("/:id", handlers.UpdateRole(container.RoleService()))
 	roleGroup.Get("/:id", handlers.GetRoleByID(container.RoleService()))
