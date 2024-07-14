@@ -108,13 +108,13 @@ ALTER TABLE "board_users" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 ALTER TABLE "board_users" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("id");
 
-ALTER TABLE "board_users" ADD FOREIGN KEY ("board_id") REFERENCES "boards" ("id");
+ALTER TABLE "board_users" ADD FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "columns" ADD FOREIGN KEY ("board_id") REFERENCES "boards" ("id");
+ALTER TABLE "columns" ADD FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE;
 
 ALTER TABLE "tasks" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("id");
 
-ALTER TABLE "tasks" ADD FOREIGN KEY ("board_id") REFERENCES "boards" ("id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE;
 
 ALTER TABLE "tasks" ADD FOREIGN KEY ("parent_id") REFERENCES "tasks" ("id");
 
