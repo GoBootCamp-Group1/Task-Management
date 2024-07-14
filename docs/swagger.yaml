@@ -827,6 +827,237 @@ paths:
       summary: Add Task Dependency
       tags:
       - Task
+  /boards/{boardId}/columns:
+    get:
+      description: gets all columns of a bard
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Columns
+      tags:
+      - Column
+    post:
+      consumes:
+      - application/json
+      description: create a column
+      parameters:
+      - description: Create Column
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateColumnRequest'
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create Column
+      tags:
+      - Column
+  /boards/{boardId}/columns/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete a column
+      parameters:
+      - description: Column ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Column
+      tags:
+      - Column
+    get:
+      description: gets a column
+      parameters:
+      - description: Column ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Column
+      tags:
+      - Column
+    put:
+      consumes:
+      - application/json
+      description: update a column
+      parameters:
+      - description: Column ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      - description: New Column name
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateColumnRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Update Column
+      tags:
+      - Column
+  /boards/{boardId}/columns/{id}/final:
+    put:
+      consumes:
+      - application/json
+      description: make a column as a final column
+      parameters:
+      - description: Column ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Final Column
+      tags:
+      - Column
+  /boards/{boardId}/columns/{id}/move:
+    put:
+      consumes:
+      - application/json
+      description: move a column
+      parameters:
+      - description: Column ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      - description: new position of column [id]
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.MoveColumnRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Move Column
+      tags:
+      - Column
   /boards/{id}:
     delete:
       description: deleted a board
@@ -937,213 +1168,6 @@ paths:
       summary: Invite User to Board
       tags:
       - Board
-  /columns/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete a column
-      parameters:
-      - description: Column ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Delete Column
-      tags:
-      - Column
-    get:
-      description: gets a column
-      parameters:
-      - description: Column ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Get Column
-      tags:
-      - Column
-    put:
-      consumes:
-      - application/json
-      description: update a column
-      parameters:
-      - description: Column ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: New Column name
-        in: body
-        name: name
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UpdateColumnRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Update Column
-      tags:
-      - Column
-  /columns/{id}/final:
-    put:
-      consumes:
-      - application/json
-      description: make a column as a final column
-      parameters:
-      - description: Column ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Final Column
-      tags:
-      - Column
-  /columns/{id}/move:
-    put:
-      consumes:
-      - application/json
-      description: move a column
-      parameters:
-      - description: Column ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: new position of column [id]
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.MoveColumnRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Move Column
-      tags:
-      - Column
-  /columns/board/:boardId:
-    get:
-      description: gets all columns of a bard
-      parameters:
-      - description: Board ID
-        in: path
-        name: boardId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Get Columns
-      tags:
-      - Column
-  /columns/board/{boardId}:
-    post:
-      consumes:
-      - application/json
-      description: create a column
-      parameters:
-      - description: Create Column
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CreateColumnRequest'
-      - description: Board ID
-        in: path
-        name: boardId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Create Column
-      tags:
-      - Column
   /login:
     post:
       consumes:

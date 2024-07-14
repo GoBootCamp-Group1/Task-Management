@@ -77,6 +77,7 @@ func (s *RoleService) InitRolesInDb(ctx context.Context) error {
 	}
 	return lastErr
 }
+
 func createRoleWithRetry(s *RoleService, role domains.Role, ctx context.Context) error {
 
 	const maxRetries = 3

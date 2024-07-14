@@ -25,5 +25,6 @@ func ColumnEntityToDomain(entity *entities.Column) *domains.Column {
 		IsFinal:       entity.IsFinal,
 		OrderPosition: entity.OrderPosition,
 		BoardID:       entity.BoardID,
+		Board:         BoardEntityToDomain(entity.Board),
 	}
 }

@@ -36,7 +36,7 @@ type CreateColumnRequest struct {
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /columns/board/{boardId} [post]
+// @Router /boards/{boardId}/columns [post]
 // @Security ApiKeyAuth
 func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -92,11 +92,12 @@ func CreateColumn(columnService *services.ColumnService) fiber.Handler {
 // @Tags Column
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
+// @Param   boardId      path     string  true  "Board ID"
 // @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns/{id} [get]
+// @Router /boards/{boardId}/columns/{id} [get]
 // @Security ApiKeyAuth
 func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -139,7 +140,7 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns/board/:boardId [get]
+// @Router /boards/{boardId}/columns [get]
 // @Security ApiKeyAuth
 func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -176,12 +177,13 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
+// @Param   boardId      path     string  true  "Board ID"
 // @Param   name      body     UpdateColumnRequest  true  "New Column name"
 // @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns/{id} [put]
+// @Router /boards/{boardId}/columns/{id} [put]
 // @Security ApiKeyAuth
 func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -242,12 +244,13 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
+// @Param   boardId      path     string  true  "Board ID"
 // @Param   body     body     MoveColumnRequest  true  "new position of column [id]"
 // @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns/{id}/move [put]
+// @Router /boards/{boardId}/columns/{id}/move [put]
 // @Security ApiKeyAuth
 func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -305,11 +308,12 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
+// @Param   boardId      path     string  true  "Board ID"
 // @Success 200 {object} Response
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns/{id}/final [put]
+// @Router /boards/{boardId}/columns/{id}/final [put]
 // @Security ApiKeyAuth
 func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -352,10 +356,11 @@ func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 // @Accept json
 // @Produce json
 // @Param   id      path     string  true  "Column ID"
+// @Param   boardId      path     string  true  "Board ID"
 // @Success 200
 // @Failure 404
 // @Failure 500
-// @Router /columns/{id} [delete]
+// @Router /boards/{boardId}/columns/{id} [delete]
 // @Security ApiKeyAuth
 func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
