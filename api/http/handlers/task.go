@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
@@ -26,11 +24,6 @@ type TaskRequest struct {
 	StartDateTime string `json:"start_datetime" validate:"required" example:"2020-01-01 16:30:00"`
 	EndDateTime   string `json:"end_datetime" validate:"required" example:"2020-01-01 16:30:00"`
 	StoryPoint    int    `json:"story_point" validate:"required,number" example:"1"`
-}
-
-type AssignTaskRequest struct {
-	TaskID uint `json:"task_id" validate:"required,gte=1" example:"1"`
-	UserID uint `json:"user_id" validate:"required,gte=1" example:"1"`
 }
 
 type AssignTaskRequest struct {
@@ -866,29 +859,25 @@ func AssignTask(taskService *services.TaskService) fiber.Handler {
 		userID := input.UserID
 		if userID == 0 {
 			log.ErrorLog.Printf("Error reading userID: %v\n", userID)
-			return OldSendError(c, errors.New("error reading user ID"), fiber.StatusInternalServerError)
+			return SendError(c, fiber.NewError(fiber.StatusBadRequest, "Error parsing user id"))
 		}
 
 		// Get Task ID from path params
 		taskID := input.TaskID
 		if taskID == 0 {
 			log.ErrorLog.Printf("Error reading task id: %v\n", taskID)
-			return OldSendError(c, ErrInvalidTaskIDParam, fiber.StatusBadRequest)
+			return SendError(c, ErrInvalidTaskIDParam)
 		}
 
 		// Assign user to the task
 		err = taskService.AssignUserToTask(c.Context(), userID, taskID)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				log.ErrorLog.Printf("Task not found: %v\n", err)
-				return OldSendError(c, ErrTaskNotFound, fiber.StatusNotFound)
-			}
 			if strings.Contains(err.Error(), "access denied") {
 				log.ErrorLog.Printf("Access denied: %v\n", err)
-				return OldSendError(c, fiber.NewError(fiber.StatusForbidden, "Access denied"), fiber.StatusForbidden)
+				return SendError(c, fiber.NewError(fiber.StatusForbidden, "Access denied"))
 			}
 			log.ErrorLog.Printf("Error assigning user to task: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 
 		log.InfoLog.Println("User assigned to task successfully")

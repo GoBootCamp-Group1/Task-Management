@@ -225,7 +225,7 @@ func (r *taskRepo) AssignUserToTask(ctx context.Context, taskID uint, userID uin
 	err := r.db.WithContext(ctx).Model(&entities.Task{}).Where("task_id = ?", taskID).First(&task).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("task not found")
+			return fiber.NewError(fiber.StatusNotFound, "Task not found!")
 		}
 		return err
 	}
