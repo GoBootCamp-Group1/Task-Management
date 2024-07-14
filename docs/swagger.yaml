@@ -71,6 +71,20 @@ definitions:
     x-enum-varnames:
     - UserRoleUser
     - UserRoleAdmin
+  handlers.AssignTaskRequest:
+    properties:
+      task_id:
+        example: 1
+        minimum: 1
+        type: integer
+      user_id:
+        example: 1
+        minimum: 1
+        type: integer
+    required:
+    - task_id
+    - user_id
+    type: object
   handlers.ChangeUserRoleRequest:
     properties:
       role_name:
@@ -1428,6 +1442,39 @@ paths:
       summary: User registration
       tags:
       - Authentication
+  /tasks/{taskID}/assign:
+    post:
+      consumes:
+      - application/json
+      description: assigns a user to a task
+      parameters:
+      - description: Assign Task
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignTaskRequest'
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Assign Task
+      tags:
+      - Task
 security:
 - ApiKeyAuth: []
 securityDefinitions:

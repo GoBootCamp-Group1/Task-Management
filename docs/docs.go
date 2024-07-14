@@ -1777,6 +1777,58 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tasks/{taskID}/assign": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "assigns a user to a task",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Assign Task",
+                "parameters": [
+                    {
+                        "description": "Assign Task",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AssignTaskRequest"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "taskID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1887,6 +1939,25 @@ const docTemplate = `{
                 "UserRoleUser",
                 "UserRoleAdmin"
             ]
+        },
+        "handlers.AssignTaskRequest": {
+            "type": "object",
+            "required": [
+                "task_id",
+                "user_id"
+            ],
+            "properties": {
+                "task_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "user_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                }
+            }
         },
         "handlers.ChangeUserRoleRequest": {
             "type": "object",
