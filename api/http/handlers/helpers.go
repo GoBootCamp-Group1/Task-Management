@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
@@ -13,10 +12,6 @@ import (
 )
 
 const UserClaimKey = jwt.UserClaimKey
-
-var (
-	errWrongClaimType = errors.New("wrong claim type")
-)
 
 type ServiceFactory[T any] func(context.Context) T
 
@@ -53,10 +48,14 @@ func SendSuccessPaginateResponse(c *fiber.Ctx, message string, data any, page ui
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func SendError(c *fiber.Ctx, err error, status int) error {
+func SendError(c *fiber.Ctx, err error) error {
 	fiberError, ok := err.(*fiber.Error)
 	if !ok {
-		panic("Unknown Error")
+		return c.Status(fiber.StatusInternalServerError).JSON(&Response{
+			Success: false,
+			Status:  fiber.StatusInternalServerError,
+			Message: "Internal Server Error",
+		})
 	}
 	if fiberError.Code == 0 {
 		fiberError.Code = fiber.StatusInternalServerError
@@ -70,21 +69,6 @@ func SendError(c *fiber.Ctx, err error, status int) error {
 		Message: fiberError.Message,
 	}
 	return c.Status(fiberError.Code).JSON(response)
-}
-
-func OldSendError(c *fiber.Ctx, err error, status int) error {
-	if status == 0 {
-		status = fiber.StatusInternalServerError
-	}
-
-	c.Locals(valuecontext.IsTxError, err)
-
-	response := Response{
-		Success: false,
-		Status:  status,
-		Message: err.Error(),
-	}
-	return c.Status(status).JSON(response)
 }
 
 func SendUserToken(c *fiber.Ctx, authToken *services.UserToken) error {
@@ -117,13 +101,13 @@ func ValidateAndFill(c *fiber.Ctx, input any) error {
 	validate := validation.NewValidator()
 
 	if err := c.BodyParser(&input); err != nil {
-		return OldSendError(c, err, fiber.StatusBadRequest)
+		return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing request body"})
 	}
 
 	err := validate.Struct(input)
 	if err != nil {
 		fmt.Printf("%+v\n", err)
-		return OldSendError(c, err, fiber.StatusBadRequest)
+		return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error validating request body"})
 	}
 
 	return nil

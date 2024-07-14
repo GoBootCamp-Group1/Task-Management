@@ -8,6 +8,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/response"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -83,28 +84,28 @@ func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, err
 	return mappers.ColumnEntityToDomain(&column), nil
 }
 
-func (r *columnRepo) GetAll(ctx context.Context, boardId uint, limit int, offset int) ([]*domains.Column, error) {
+func (r *columnRepo) GetAll(ctx context.Context, boardId uint, page int, pageSize int) (response.PaginateResponseFromService[[]*domains.Column], error) {
 	var columnEntities []entities.Column
 
 	query := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{BoardID: boardId}).Order("order_position ASC")
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
-		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return response.PaginateResponseFromService[[]*domains.Column]{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if offset > 0 {
-		query = query.Offset(offset)
+	if pageSize > 0 {
+		query = query.Offset((page * pageSize) - pageSize)
 	}
 
-	if limit > 0 {
-		query = query.Limit(limit)
+	if page > 0 {
+		query = query.Limit(pageSize)
 	}
 
-	err := query.Find(&columnEntities).Error
+	err := query.Debug().Find(&columnEntities).Error
 
 	if err != nil {
-		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return response.PaginateResponseFromService[[]*domains.Column]{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	columns := make([]*domains.Column, len(columnEntities))
@@ -112,7 +113,12 @@ func (r *columnRepo) GetAll(ctx context.Context, boardId uint, limit int, offset
 		columns[i] = mappers.ColumnEntityToDomain(&c)
 	}
 
-	return columns, nil
+	return response.PaginateResponseFromService[[]*domains.Column]{
+		Data:     columns,
+		Page:     page,
+		PageSize: pageSize,
+		Total:    total,
+	}, nil
 }
 
 // only name can update

@@ -5,6 +5,7 @@ import (
 
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/GoBootCamp-Group1/Task-Management/pkg/response"
 )
 
 type ColumnService struct {
@@ -23,7 +24,7 @@ func (s *ColumnService) GetColumnById(ctx context.Context, id uint) (*domains.Co
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *ColumnService) GetAllColumns(ctx context.Context, boardId uint, limit int, offset int) ([]*domains.Column, error) {
+func (s *ColumnService) GetAllColumns(ctx context.Context, boardId uint, limit int, offset int) (response.PaginateResponseFromService[[]*domains.Column], error) {
 	return s.repo.GetAll(ctx, boardId, limit, offset)
 }
 

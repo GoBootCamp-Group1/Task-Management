@@ -3,10 +3,12 @@ package storage
 import (
 	"context"
 	"errors"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -21,21 +23,21 @@ func NewUserRepo(db *gorm.DB) ports.UserRepo {
 }
 
 var (
-	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = "user already exists"
+	ErrUserNotFound      = "user not found"
 )
 
 func (r *userRepo) Create(ctx context.Context, user *domains.User) error {
 	var existingUser *entities.User
 	err := r.db.WithContext(ctx).Model(&entities.User{}).Where("email = ?", user.Email).First(&existingUser).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	if existingUser.ID != 0 {
-		return ErrUserAlreadyExists
+		return fiber.NewError(fiber.StatusBadRequest, ErrUserAlreadyExists)
 	}
 
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	if err := r.db.Transaction(func(tx *gorm.DB) error {
 		entity := mappers.DomainToUserEntity(user)
 		err := tx.WithContext(ctx).Create(&entity).Error
 		if err != nil {
@@ -43,7 +45,11 @@ func (r *userRepo) Create(ctx context.Context, user *domains.User) error {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return nil
 }
 
 func (r *userRepo) GetByID(ctx context.Context, id uint) (*domains.User, error) {
@@ -51,11 +57,11 @@ func (r *userRepo) GetByID(ctx context.Context, id uint) (*domains.User, error) 
 
 	err := r.db.WithContext(ctx).Model(&entities.User{}).Where("id = ?", id).First(&u).Error
 	if err != nil {
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if u.ID == 0 {
-		return nil, ErrUserNotFound
+		return nil, fiber.NewError(fiber.StatusNotFound, ErrUserNotFound)
 	}
 
 	return mappers.UserEntityToDomain(&u), nil
@@ -66,9 +72,9 @@ func (r *userRepo) GetByEmail(ctx context.Context, email string) (*domains.User,
 	err := r.db.WithContext(ctx).Model(&entities.User{}).Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, fiber.NewError(fiber.StatusNotFound, ErrUserNotFound)
 		}
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return mappers.UserEntityToDomain(&user), nil
 }
