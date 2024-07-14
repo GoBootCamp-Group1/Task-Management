@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"time"
 
 	"fmt"
@@ -23,6 +24,11 @@ type TaskRequest struct {
 	StartDateTime string `json:"start_datetime" validate:"required" example:"2020-01-01 16:30:00"`
 	EndDateTime   string `json:"end_datetime" validate:"required" example:"2020-01-01 16:30:00"`
 	StoryPoint    int    `json:"story_point" validate:"required,number" example:"1"`
+}
+
+type AssignTaskRequest struct {
+	TaskID uint `json:"task_id" validate:"required,gte=1" example:"1"`
+	UserID uint `json:"user_id" validate:"required,gte=1" example:"1"`
 }
 
 var dateTimeLayout = "2006-01-02 15:04:05"
@@ -822,5 +828,63 @@ func DeleteComment(taskService *services.TaskService) fiber.Handler {
 		log.InfoLog.Println("Comment deleted successfully")
 
 		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+// AssignTask assigns a user to a task
+// @Summary Assign Task
+// @Description assigns a user to a task
+// @Tags Task
+// @Accept  json
+// @Produce json
+// @Param   body  body      AssignTaskRequest  true  "Assign Task"
+// @Param   taskID path      int                true  "Task ID"
+// @Success 200
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /tasks/{taskID}/assign [post]
+// @Security ApiKeyAuth
+func AssignTask(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		var input AssignTaskRequest
+
+		err := ValidateAndFill(c, &input)
+		if err != nil {
+			return err
+		}
+
+		// Get User ID of the requester
+		userID := input.UserID
+		if userID == 0 {
+			log.ErrorLog.Printf("Error reading userID: %v\n", userID)
+			return SendError(c, fiber.NewError(fiber.StatusBadRequest, "Error parsing user id"))
+		}
+
+		// Get Task ID from path params
+		taskID := input.TaskID
+		if taskID == 0 {
+			log.ErrorLog.Printf("Error reading task id: %v\n", taskID)
+			return SendError(c, ErrInvalidTaskIDParam)
+		}
+
+		// Assign user to the task
+		err = taskService.AssignUserToTask(c.Context(), userID, taskID)
+		if err != nil {
+			if strings.Contains(err.Error(), "access denied") {
+				log.ErrorLog.Printf("Access denied: %v\n", err)
+				return SendError(c, fiber.NewError(fiber.StatusForbidden, "Access denied"))
+			}
+			log.ErrorLog.Printf("Error assigning user to task: %v\n", err)
+			return SendError(c, err)
+		}
+
+		log.InfoLog.Println("User assigned to task successfully")
+		return SendSuccessResponse(
+			c,
+			"Successfully assigned user to task.",
+			nil,
+		)
 	}
 }

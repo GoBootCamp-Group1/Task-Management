@@ -18,6 +18,7 @@ type TaskRepo interface {
 	DependencyExists(ctx context.Context, taskID, dependentTaskID uint) (bool, error)
 	GetAllTaskDependencies(ctx context.Context) ([]domains.TaskDependency, error)
 	GetTaskChildren(ctx context.Context, taskID uint) ([]domains.TaskChild, error)
+	AssignUserToTask(ctx context.Context, taskID uint, userID uint) error
 }
 
 type TaskCommentRepo interface {
