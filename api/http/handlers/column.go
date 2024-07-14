@@ -106,7 +106,13 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam)
 		}
 
-		column, err := columnService.GetColumnById(c.Context(), uint(id))
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
+			return SendError(c, err)
+		}
+
+		column, err := columnService.GetColumnById(c.Context(), userId, uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error getting column: %v\n", err)
 			return SendError(c, err)
@@ -145,7 +151,13 @@ func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 
 		page, pageSize := PageAndPageSize(c)
 
-		columns, err := columnService.GetAllColumns(c.Context(), uint(boardId), page, pageSize)
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
+			return SendError(c, err)
+		}
+
+		columns, err := columnService.GetAllColumns(c.Context(), userId, uint(boardId), page, pageSize)
 		if err != nil {
 			log.ErrorLog.Printf("Error getting all columns: %v\n", err)
 			return SendError(c, err)
@@ -180,6 +192,12 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam)
 		}
 
+		boardId, errParam := c.ParamsInt("boardId")
+		if errParam != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errParam)
+			return SendError(c, errParam)
+		}
+
 		var input UpdateColumnRequest
 
 		if err := c.BodyParser(&input); err != nil {
@@ -197,7 +215,13 @@ func UpdateColumn(columnService *services.ColumnService) fiber.Handler {
 			Name: input.Name,
 		}
 
-		if err := columnService.Update(c.Context(), &column); err != nil {
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
+			return SendError(c, err)
+		}
+
+		if err := columnService.Update(c.Context(), uint(boardId), userId, &column); err != nil {
 			log.ErrorLog.Printf("Error updating column: %v\n", err)
 			return SendError(c, err)
 		}
@@ -234,6 +258,18 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam)
 		}
 
+		boardId, errParam := c.ParamsInt("boardId")
+		if errParam != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errParam)
+			return SendError(c, errParam)
+		}
+
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
+			return SendError(c, err)
+		}
+
 		var input MoveColumnRequest
 
 		if err := c.BodyParser(&input); err != nil {
@@ -248,7 +284,7 @@ func MoveColumn(columnService *services.ColumnService) fiber.Handler {
 
 		column := domains.ColumnMove{ID: uint(id), OrderPosition: input.OrderPosition}
 
-		if err := columnService.Move(c.Context(), &column); err != nil {
+		if err := columnService.Move(c.Context(), uint(boardId), userId, &column); err != nil {
 			log.ErrorLog.Printf("Error moving column: %v\n", err)
 			return SendError(c, err)
 		}
@@ -283,7 +319,19 @@ func ChangeFinalColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam)
 		}
 
-		if err := columnService.Final(c.Context(), uint(id)); err != nil {
+		boardId, errParam := c.ParamsInt("boardId")
+		if errParam != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errParam)
+			return SendError(c, errParam)
+		}
+
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
+			return SendError(c, err)
+		}
+
+		if err := columnService.Final(c.Context(), uint(boardId), userId, uint(id)); err != nil {
 			log.ErrorLog.Printf("Error changing final column: %v\n", err)
 			return SendError(c, err)
 		}
@@ -317,7 +365,19 @@ func DeleteColumn(columnService *services.ColumnService) fiber.Handler {
 			return SendError(c, errParam)
 		}
 
-		if err := columnService.Delete(c.Context(), uint(id)); err != nil {
+		boardId, errParam := c.ParamsInt("boardId")
+		if errParam != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errParam)
+			return SendError(c, errParam)
+		}
+
+		userId, err := utils.GetUserID(c)
+		if err != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", err)
+			return SendError(c, err)
+		}
+
+		if err := columnService.Delete(c.Context(), uint(boardId), userId, uint(id)); err != nil {
 			log.ErrorLog.Printf("Error deleting column: %v\n", err)
 			return SendError(c, err)
 		}

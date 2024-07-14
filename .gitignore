@@ -28,6 +28,8 @@ go.work.sum
 
 # Config
 cmd/api/config.yaml
+config.yaml
 
 # Log
 cmd/api/appLogs.txt
+appLogs.txt

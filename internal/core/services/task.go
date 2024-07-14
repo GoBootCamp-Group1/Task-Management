@@ -171,7 +171,7 @@ func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *d
 		return nil, errFetch
 	}
 
-	newColumn, errFetchColumn := s.columnService.GetColumnById(ctx, newColumnID)
+	newColumn, errFetchColumn := s.columnService.GetColumnById(ctx, userID, newColumnID)
 	if errFetchColumn != nil {
 		return nil, errFetchColumn
 	}
@@ -280,19 +280,19 @@ func (s *TaskService) CreateComment(ctx context.Context, userID uint, boardID ui
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, boardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//create task comment
 	errCreate := s.taskCommentRepo.Create(ctx, taskComment)
 	if errCreate != nil {
-		return nil, fmt.Errorf("repository: can not create comment: %w", errCreate)
+		return nil, errCreate
 	}
 
 	//load comment
 	comment, errFetch := s.taskCommentRepo.GetByID(ctx, taskComment.ID.String())
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch comment #%d: %w", taskComment.ID, errFetch)
+		return nil, errFetch
 	}
 
 	return comment, nil
@@ -302,7 +302,7 @@ func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID 
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 	if !hasAccess {
-		return nil, 0, fmt.Errorf("access denied")
+		return nil, 0, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//pagination calculate
@@ -312,7 +312,7 @@ func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID 
 	//create task comment
 	comments, total, errFetch := s.taskCommentRepo.GetListByTaskID(ctx, taskID, limit, offset)
 	if errFetch != nil {
-		return nil, 0, fmt.Errorf("repository: can not fetch comments: %w", errFetch)
+		return nil, 0, errFetch
 	}
 
 	return comments, total, nil
@@ -322,13 +322,13 @@ func (s *TaskService) GetTaskComment(ctx context.Context, userID uint, boardID u
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//create task comment
 	comment, errFetch := s.taskCommentRepo.GetByID(ctx, commentID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch comment: %w", errFetch)
+		return nil, errFetch
 	}
 
 	return comment, nil
@@ -338,11 +338,11 @@ func (s *TaskService) DeleteComment(ctx context.Context, userID uint, boardID ui
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, boardID)
 	if !hasAccess {
-		return fmt.Errorf("access denied")
+		return &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 	errDelete := s.taskCommentRepo.Delete(ctx, id)
 	if errDelete != nil {
-		return fmt.Errorf("repository: can not delete comment %w", errDelete)
+		return errDelete
 	}
 	return nil
 }

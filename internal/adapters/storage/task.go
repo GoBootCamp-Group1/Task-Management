@@ -118,7 +118,6 @@ func (r *taskRepo) Update(ctx context.Context, task *domains.Task) error {
 	existingTask.StartDateTime = task.StartDateTime
 	existingTask.EndDateTime = task.EndDateTime
 	existingTask.StoryPoint = task.StoryPoint
-	existingTask.Additional = task.Additional
 
 	if err := r.db.WithContext(ctx).Save(&existingTask).Error; err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())

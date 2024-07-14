@@ -1,10 +1,10 @@
 package entities
 
 import (
-	"encoding/json"
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Task struct {
@@ -21,7 +21,6 @@ type Task struct {
 	StartDateTime *time.Time `gorm:"column:start_datetime"`
 	EndDateTime   *time.Time `gorm:"column:end_datetime"`
 	StoryPoint    int
-	Additional    json.RawMessage
 
 	Board    Board  `gorm:"foreignKey:BoardID"`
 	Creator  User   `gorm:"foreignKey:CreatedBy"`

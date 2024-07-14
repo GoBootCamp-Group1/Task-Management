@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"time"
 
 	"fmt"
@@ -15,16 +14,15 @@ import (
 )
 
 type TaskRequest struct {
-	Name          string          `json:"name" validate:"required,min=3,max=50" example:"new task"`
-	ColumnID      uint            `json:"column_id" validate:"required,gte=1" example:"1"`
-	ParentID      *uint           `json:"parent_id,omitempty" validate:"omitempty,gte=1" example:"1"`
-	AssigneeID    *uint           `json:"assignee_id,omitempty" validate:"omitempty,gte=1" example:"1"`
-	OrderPosition int             `json:"order_position" validate:"required,number" example:"1"`
-	Description   string          `json:"description" validate:"required,min=1,max=2000" example:"This is the description"`
-	StartDateTime string          `json:"start_datetime" validate:"required" example:"2020-01-01 16:30:00"`
-	EndDateTime   string          `json:"end_datetime" validate:"required" example:"2020-01-01 16:30:00"`
-	StoryPoint    int             `json:"story_point" validate:"required,number" example:"1"`
-	Additional    json.RawMessage `json:"additional,omitempty" validate:"json"`
+	Name          string `json:"name" validate:"required,min=3,max=50" example:"new task"`
+	ColumnID      uint   `json:"column_id" validate:"required,gte=1" example:"1"`
+	ParentID      *uint  `json:"parent_id,omitempty" validate:"omitempty,gte=1" example:"1"`
+	AssigneeID    *uint  `json:"assignee_id,omitempty" validate:"omitempty,gte=1" example:"1"`
+	OrderPosition int    `json:"order_position" validate:"required,number" example:"1"`
+	Description   string `json:"description" validate:"required,min=1,max=2000" example:"This is the description"`
+	StartDateTime string `json:"start_datetime" validate:"required" example:"2020-01-01 16:30:00"`
+	EndDateTime   string `json:"end_datetime" validate:"required" example:"2020-01-01 16:30:00"`
+	StoryPoint    int    `json:"story_point" validate:"required,number" example:"1"`
 }
 
 var dateTimeLayout = "2006-01-02 15:04:05"
@@ -46,10 +44,11 @@ var (
 // @Accept  json
 // @Produce json
 // @Param   body  body      TaskRequest  true  "Create Task"
+// @Param 	boardId	path	string	true "Board ID"
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /tasks [post]
+// @Router /boards/{boardID}/tasks/ [post]
 // @Security ApiKeyAuth
 func CreateTask(taskService *services.TaskService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -99,7 +98,6 @@ func CreateTask(taskService *services.TaskService) fiber.Handler {
 			StartDateTime: &startDateTime,
 			EndDateTime:   &endDateTime,
 			StoryPoint:    input.StoryPoint,
-			Additional:    input.Additional,
 		}
 
 		createdTask, err := taskService.CreateTask(c.Context(), &taskModel)
@@ -294,7 +292,6 @@ func UpdateTask(taskService *services.TaskService) fiber.Handler {
 			StartDateTime: &startDateTime,
 			EndDateTime:   &endDateTime,
 			StoryPoint:    input.StoryPoint,
-			Additional:    input.Additional,
 		}
 
 		updatedTask, err := taskService.UpdateTask(c.Context(), userID, uint(boardID), &taskModel)

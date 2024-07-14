@@ -106,6 +106,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/boards/{boardID}/tasks/": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "creates a task",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Task"
+                ],
+                "summary": "Create Task",
+                "parameters": [
+                    {
+                        "description": "Create Task",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TaskRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Board ID",
+                        "name": "boardId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/boards/{boardID}/tasks/{id}": {
             "delete": {
                 "security": [
@@ -1728,48 +1777,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/tasks": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "creates a task",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Task"
-                ],
-                "summary": "Create Task",
-                "parameters": [
-                    {
-                        "description": "Create Task",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.TaskRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -2069,7 +2076,61 @@ const docTemplate = `{
             }
         },
         "handlers.TaskRequest": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "column_id",
+                "description",
+                "end_datetime",
+                "name",
+                "order_position",
+                "start_datetime",
+                "story_point"
+            ],
+            "properties": {
+                "assignee_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "column_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "minLength": 1,
+                    "example": "This is the description"
+                },
+                "end_datetime": {
+                    "type": "string",
+                    "example": "2020-01-01 16:30:00"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3,
+                    "example": "new task"
+                },
+                "order_position": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "parent_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "start_datetime": {
+                    "type": "string",
+                    "example": "2020-01-01 16:30:00"
+                },
+                "story_point": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
         },
         "handlers.UpdateBoardRequest": {
             "type": "object",

@@ -73,7 +73,7 @@ func (r *columnRepo) Create(ctx context.Context, column *domains.Column) error {
 
 func (r *columnRepo) GetByID(ctx context.Context, id uint) (*domains.Column, error) {
 	var column entities.Column
-	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: id}}).First(&column).Error
+	err := r.db.WithContext(ctx).Model(&entities.Column{}).Where(&entities.Column{Model: gorm.Model{ID: id}}).Preload("Board").First(&column).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fiber.NewError(fiber.StatusNotFound, "Column not found")
