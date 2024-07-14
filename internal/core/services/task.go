@@ -7,6 +7,7 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
+	"github.com/gofiber/fiber/v2"
 )
 
 type TaskService struct {
@@ -37,14 +38,14 @@ func (s *TaskService) GetTasksByBoardID(ctx context.Context, userID uint, boardI
 	//check permission
 	board, errFetchBoard := s.boardService.GetBoardByID(ctx, boardID)
 	if errFetchBoard != nil {
-		return nil, 0, fmt.Errorf("board service: can not fetch board #%d: %w", boardID, errFetchBoard)
+		return nil, 0, errFetchBoard
 	}
 
 	if board.IsPrivate {
 		//check permissions -> only board members can see task
 		hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 		if !hasAccess {
-			return nil, 0, fmt.Errorf("access denied")
+			return nil, 0, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 		}
 	}
 
@@ -55,7 +56,7 @@ func (s *TaskService) GetTasksByBoardID(ctx context.Context, userID uint, boardI
 	//fetch tasks
 	tasks, total, errFetch := s.repo.GetListByBoardID(ctx, boardID, limit, offset)
 	if errFetch != nil {
-		return nil, 0, fmt.Errorf("repository: can not fetch tasks: %w", errFetch)
+		return nil, 0, errFetch
 	}
 
 	return tasks, total, nil
@@ -65,19 +66,19 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, task.CreatedBy, task.BoardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//create task
 	errCreate := s.repo.Create(ctx, task)
 	if errCreate != nil {
-		return nil, fmt.Errorf("repository: can not create task: %w", errCreate)
+		return nil, errCreate
 	}
 
 	//load task
 	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch task #%d: %w", task.ID, errFetch)
+		return nil, errFetch
 	}
 
 	//Send notification to Assignee if exists
@@ -99,19 +100,19 @@ func (s *TaskService) CreateTask(ctx context.Context, task *domains.Task) (*doma
 func (s *TaskService) GetTaskByID(ctx context.Context, userID uint, boardID uint, id uint) (*domains.Task, error) {
 	task, errFetch := s.repo.GetByID(ctx, id)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch task #%d: %w", id, errFetch)
+		return nil, errFetch
 	}
 
 	board, errFetchBoard := s.boardService.GetBoardByID(ctx, boardID)
 	if errFetchBoard != nil {
-		return nil, fmt.Errorf("board service: can not fetch board #%d: %w", boardID, errFetchBoard)
+		return nil, errFetchBoard
 	}
 	//check permission
 	if board.IsPrivate {
 		//check permissions -> only board members can see task
 		hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 		if !hasAccess {
-			return nil, fmt.Errorf("access denied")
+			return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 		}
 	}
 
@@ -122,17 +123,17 @@ func (s *TaskService) UpdateTask(ctx context.Context, userID uint, boardID uint,
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, boardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	errUpdate := s.repo.Update(ctx, task)
 	if errUpdate != nil {
-		return nil, fmt.Errorf("repository: can not update task: %w", errUpdate)
+		return nil, errUpdate
 	}
 
 	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errFetch)
+		return nil, errFetch
 	}
 
 	return taskWithRelations, nil
@@ -142,17 +143,17 @@ func (s *TaskService) DeleteTask(ctx context.Context, userID uint, id uint) erro
 	//load task
 	task, errFetch := s.repo.GetByID(ctx, id)
 	if errFetch != nil {
-		return fmt.Errorf("repository: can not fetch task #%d: %w", id, errFetch)
+		return errFetch
 	}
 
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, task.BoardID)
 	if !hasAccess {
-		return fmt.Errorf("access denied")
+		return &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 	errDelete := s.repo.Delete(ctx, id)
 	if errDelete != nil {
-		return fmt.Errorf("repository: can not delete task %w", errDelete)
+		return errDelete
 	}
 	return nil
 }
@@ -161,25 +162,25 @@ func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *d
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, task.BoardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//fetch task info
 	t, errFetch := s.repo.GetByID(ctx, task.ID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errFetch)
+		return nil, errFetch
 	}
 
-	newColumn, errFetchColumn := s.columnService.GetColumnById(ctx, newColumnID)
+	newColumn, errFetchColumn := s.columnService.GetColumnById(ctx, userID, newColumnID)
 	if errFetchColumn != nil {
-		return nil, fmt.Errorf("service: can not fetch column info #%d %w", newColumnID, errFetchColumn)
+		return nil, errFetchColumn
 	}
 
 	//Check for children tasks
 	if newColumn.IsFinal {
 		childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, task.ID)
 		if errFetchChildrenTasks != nil {
-			return nil, fmt.Errorf("repository: can not get children of task: %w", errFetchChildrenTasks)
+			return nil, errFetchChildrenTasks
 		}
 
 		allChildrenFinished := true
@@ -191,7 +192,7 @@ func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *d
 		}
 
 		if !allChildrenFinished {
-			return nil, fmt.Errorf("service: children tasks are not finished yet")
+			return nil, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Children tasks are not finished yet"}
 		}
 	}
 
@@ -199,12 +200,12 @@ func (s *TaskService) ChangeTaskColumn(ctx context.Context, userID uint, task *d
 	t.ColumnID = newColumnID
 	errUpdate := s.repo.Update(ctx, t)
 	if errUpdate != nil {
-		return nil, fmt.Errorf("repository: can not update task: %w", errUpdate)
+		return nil, errUpdate
 	}
 
 	taskWithRelations, errFetch := s.repo.GetByID(ctx, task.ID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch task #%d %w", task.ID, errFetch)
+		return nil, errFetch
 	}
 
 	return taskWithRelations, nil
@@ -214,7 +215,7 @@ func (s *TaskService) GetTaskChildren(ctx context.Context, userID uint, boardID 
 	childrenTasks, errFetchChildrenTasks := s.repo.GetTaskChildren(ctx, taskID)
 
 	if errFetchChildrenTasks != nil {
-		return nil, fmt.Errorf("repository: can not get children of task: %w", errFetchChildrenTasks)
+		return nil, errFetchChildrenTasks
 	}
 
 	return childrenTasks, nil
@@ -235,7 +236,7 @@ func (s *TaskService) AddTaskDependency(ctx context.Context, taskID, dependentTa
 
 	// Start the cycle detection from the taskID and check if it reaches dependentTaskID
 	if hasCycle(graph, taskID, dependentTaskID) {
-		return fmt.Errorf("adding this dependency would create a cycle")
+		return &fiber.Error{Code: fiber.StatusBadRequest, Message: "Adding this dependency would create a cycle"}
 	}
 
 	return s.repo.AddTaskDependency(ctx, taskID, dependentTaskID)
@@ -279,19 +280,19 @@ func (s *TaskService) CreateComment(ctx context.Context, userID uint, boardID ui
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, boardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//create task comment
 	errCreate := s.taskCommentRepo.Create(ctx, taskComment)
 	if errCreate != nil {
-		return nil, fmt.Errorf("repository: can not create comment: %w", errCreate)
+		return nil, errCreate
 	}
 
 	//load comment
 	comment, errFetch := s.taskCommentRepo.GetByID(ctx, taskComment.ID.String())
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch comment #%d: %w", taskComment.ID, errFetch)
+		return nil, errFetch
 	}
 
 	return comment, nil
@@ -301,7 +302,7 @@ func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID 
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 	if !hasAccess {
-		return nil, 0, fmt.Errorf("access denied")
+		return nil, 0, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//pagination calculate
@@ -311,7 +312,7 @@ func (s *TaskService) GetTaskComments(ctx context.Context, userID uint, boardID 
 	//create task comment
 	comments, total, errFetch := s.taskCommentRepo.GetListByTaskID(ctx, taskID, limit, offset)
 	if errFetch != nil {
-		return nil, 0, fmt.Errorf("repository: can not fetch comments: %w", errFetch)
+		return nil, 0, errFetch
 	}
 
 	return comments, total, nil
@@ -321,13 +322,13 @@ func (s *TaskService) GetTaskComment(ctx context.Context, userID uint, boardID u
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Viewer, userID, boardID)
 	if !hasAccess {
-		return nil, fmt.Errorf("access denied")
+		return nil, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 
 	//create task comment
 	comment, errFetch := s.taskCommentRepo.GetByID(ctx, commentID)
 	if errFetch != nil {
-		return nil, fmt.Errorf("repository: can not fetch comment: %w", errFetch)
+		return nil, errFetch
 	}
 
 	return comment, nil
@@ -337,11 +338,11 @@ func (s *TaskService) DeleteComment(ctx context.Context, userID uint, boardID ui
 	//check permissions
 	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Maintainer, userID, boardID)
 	if !hasAccess {
-		return fmt.Errorf("access denied")
+		return &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"}
 	}
 	errDelete := s.taskCommentRepo.Delete(ctx, id)
 	if errDelete != nil {
-		return fmt.Errorf("repository: can not delete comment %w", errDelete)
+		return errDelete
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package mappers
 
 import (
 	"database/sql"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/fp"
@@ -22,7 +23,6 @@ func DomainToTaskEntity(model *domains.Task) *entities.Task {
 		StartDateTime: model.StartDateTime,
 		EndDateTime:   model.EndDateTime,
 		StoryPoint:    model.StoryPoint,
-		Additional:    model.Additional,
 	}
 }
 
@@ -54,7 +54,6 @@ func TaskEntityToDomain(entity *entities.Task) *domains.Task {
 		StartDateTime: entity.StartDateTime,
 		EndDateTime:   entity.EndDateTime,
 		StoryPoint:    entity.StoryPoint,
-		Additional:    entity.Additional,
 
 		Board:   BoardEntityToDomain(&entity.Board),
 		Creator: UserEntityToDomain(&entity.Creator),

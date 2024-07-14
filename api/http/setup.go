@@ -2,8 +2,9 @@ package http
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"time"
+
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/handlers"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/middlerwares"
 	"github.com/GoBootCamp-Group1/Task-Management/api/http/routes"
@@ -15,7 +16,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/swagger"
-	"time"
 )
 
 func Run(cfg config.Server, app *app.Container) {
@@ -55,7 +55,7 @@ func rateLimit(cfg config.Server, fiberApp *fiber.App) fiber.Router {
 		Expiration: time.Duration(cfg.RateLimitExpiration) * time.Second,
 		LimitReached: func(c *fiber.Ctx) error {
 			log.ErrorLog.Println("User reached request limit!")
-			return handlers.SendError(c, errors.New("too many requests"), fiber.StatusTooManyRequests)
+			return handlers.SendError(c, fiber.NewError(fiber.StatusTooManyRequests, "Too many requests"))
 		},
 	}))
 }

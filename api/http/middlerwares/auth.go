@@ -1,7 +1,6 @@
 package middlerwares
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 )
 
 var (
-	ErrNoAuthToken        = errors.New("authorization token not specified")
-	ErrMalformedAuthToken = errors.New("authorization token is malformed")
-	ErrTokenExpired       = errors.New("token expired")
+	ErrNoAuthToken        = fiber.NewError(fiber.StatusUnauthorized, "authorization token not specified")
+	ErrMalformedAuthToken = fiber.NewError(fiber.StatusUnauthorized, "authorization token is malformed")
+	ErrTokenExpired       = fiber.NewError(fiber.StatusUnauthorized, "token expired")
 )
 
 func Auth(secret []byte) fiber.Handler {
@@ -23,13 +22,13 @@ func Auth(secret []byte) fiber.Handler {
 		h := c.GetReqHeaders()["Authorization"]
 		if len(h) == 0 {
 			log.ErrorLog.Printf("Error authenticating: %v\n", ErrNoAuthToken)
-			return handlers.OldSendError(c, ErrNoAuthToken, fiber.StatusUnauthorized)
+			return handlers.SendError(c, ErrNoAuthToken)
 		}
 
 		// Check if the Authorization header starts with "Bearer "
 		if !strings.HasPrefix(h[0], "Bearer ") {
 			log.ErrorLog.Printf("Error malformed authentication token: %v\n", ErrMalformedAuthToken)
-			return handlers.OldSendError(c, ErrMalformedAuthToken, fiber.StatusUnauthorized)
+			return handlers.SendError(c, ErrMalformedAuthToken)
 		}
 
 		// Extract the token part
@@ -38,14 +37,14 @@ func Auth(secret []byte) fiber.Handler {
 		claims, err := jwt.ParseToken(tokenString, secret)
 		if err != nil {
 			log.ErrorLog.Printf("Error unathorized: %v\n", err)
-			return handlers.OldSendError(c, err, fiber.StatusUnauthorized)
+			return handlers.SendError(c, ErrNoAuthToken)
 		}
 
 		c.Locals(jwt.UserClaimKey, claims)
 
 		if claims.ExpiresAt.Before(time.Now()) {
 			log.ErrorLog.Printf("Error expired token: %v\n", ErrTokenExpired)
-			return handlers.OldSendError(c, ErrTokenExpired, fiber.StatusUnauthorized)
+			return handlers.SendError(c, ErrTokenExpired)
 		}
 
 		return c.Next()
@@ -64,7 +63,7 @@ func RoleChecker(roles ...string) fiber.Handler {
 		}
 
 		if !hasAccess {
-			return handlers.OldSendError(c, errors.New("you don't have access to this section"), fiber.StatusForbidden)
+			return handlers.SendError(c, fiber.NewError(fiber.StatusForbidden, "You don't have access to this section"))
 		}
 
 		return c.Next()

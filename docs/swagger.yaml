@@ -205,6 +205,49 @@ definitions:
     - comment
     type: object
   handlers.TaskRequest:
+    properties:
+      assignee_id:
+        example: 1
+        minimum: 1
+        type: integer
+      column_id:
+        example: 1
+        minimum: 1
+        type: integer
+      description:
+        example: This is the description
+        maxLength: 2000
+        minLength: 1
+        type: string
+      end_datetime:
+        example: "2020-01-01 16:30:00"
+        type: string
+      name:
+        example: new task
+        maxLength: 50
+        minLength: 3
+        type: string
+      order_position:
+        example: 1
+        type: integer
+      parent_id:
+        example: 1
+        minimum: 1
+        type: integer
+      start_datetime:
+        example: "2020-01-01 16:30:00"
+        type: string
+      story_point:
+        example: 1
+        type: integer
+    required:
+    - column_id
+    - description
+    - end_datetime
+    - name
+    - order_position
+    - start_datetime
+    - story_point
     type: object
   handlers.UpdateBoardRequest:
     properties:
@@ -388,6 +431,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get Tasks
+      tags:
+      - Task
+  /boards/{boardID}/tasks/:
+    post:
+      consumes:
+      - application/json
+      description: creates a task
+      parameters:
+      - description: Create Task
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TaskRequest'
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create Task
       tags:
       - Task
   /boards/{boardID}/tasks/{id}:
@@ -849,63 +923,6 @@ paths:
       summary: Invite User to Board
       tags:
       - Board
-  /columns/{boardId}:
-    get:
-      description: gets all columns of a bard
-      parameters:
-      - description: Board ID
-        in: path
-        name: boardId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Get Columns
-      tags:
-      - Column
-    post:
-      consumes:
-      - application/json
-      description: create a column
-      parameters:
-      - description: Create Column
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CreateColumnRequest'
-      - description: Board ID
-        in: path
-        name: boardId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Create Column
-      tags:
-      - Column
   /columns/{id}:
     delete:
       consumes:
@@ -1053,6 +1070,64 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Move Column
+      tags:
+      - Column
+  /columns/board/:boardId:
+    get:
+      description: gets all columns of a bard
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Columns
+      tags:
+      - Column
+  /columns/board/{boardId}:
+    post:
+      consumes:
+      - application/json
+      description: create a column
+      parameters:
+      - description: Create Column
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateColumnRequest'
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create Column
       tags:
       - Column
   /login:
@@ -1353,32 +1428,6 @@ paths:
       summary: User registration
       tags:
       - Authentication
-  /tasks:
-    post:
-      consumes:
-      - application/json
-      description: creates a task
-      parameters:
-      - description: Create Task
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.TaskRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Create Task
-      tags:
-      - Task
 security:
 - ApiKeyAuth: []
 securityDefinitions:

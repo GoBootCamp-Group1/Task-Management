@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/services"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/log"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/validation"
 	"github.com/gofiber/fiber/v2"
-	"strconv"
 )
 
 var (
@@ -38,13 +39,13 @@ func CreateRole(roleService *services.RoleService) fiber.Handler {
 
 		if err := c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing role creation request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing role creation request body"})
 		}
 
 		err := validate.Struct(input)
 		if err != nil {
 			log.ErrorLog.Printf("Error validating role creation request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error validating role creation request body"})
 		}
 
 		roleModel := domains.Role{
@@ -56,7 +57,7 @@ func CreateRole(roleService *services.RoleService) fiber.Handler {
 		err = roleService.CreateRole(c.Context(), &roleModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error creating role: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "Role created successfully"
 		log.InfoLog.Println(msg)
@@ -82,18 +83,18 @@ func GetRoleByID(roleService *services.RoleService) fiber.Handler {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing role id: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing role id"})
 		}
 
 		role, err := roleService.GetRoleById(c.Context(), uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error getting role: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 
 		if role == nil {
 			log.ErrorLog.Printf("Error getting role: %v\n", ErrRoleNotFound)
-			return OldSendError(c, ErrRoleNotFound, fiber.StatusNotFound)
+			return SendError(c, ErrRoleNotFound)
 		}
 
 		msg := "Role loaded successfully"
@@ -127,19 +128,19 @@ func UpdateRole(roleService *services.RoleService) fiber.Handler {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing role id: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing role id"})
 		}
 		var input UpdateRoleRequest
 
 		if err = c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing role update request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing role update request body"})
 		}
 
 		err = validate.Struct(input)
 		if err != nil {
 			log.ErrorLog.Printf("Error validating role update request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error validating role update request body"})
 		}
 
 		roleModel := domains.Role{
@@ -152,7 +153,7 @@ func UpdateRole(roleService *services.RoleService) fiber.Handler {
 		err = roleService.UpdateRole(c.Context(), &roleModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error updating role: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "Role updated successfully"
 		log.InfoLog.Println(msg)
@@ -177,13 +178,13 @@ func DeleteRole(roleService *services.RoleService) fiber.Handler {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing role id: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing role id"})
 		}
 
 		err = roleService.DeleteRole(c.Context(), uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error deleting role: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "Role deleted successfully"
 		log.InfoLog.Println(msg)

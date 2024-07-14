@@ -1,9 +1,9 @@
 package domains
 
 import (
-	"encoding/json"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Task struct {
@@ -22,7 +22,6 @@ type Task struct {
 	StartDateTime *time.Time
 	EndDateTime   *time.Time
 	StoryPoint    int
-	Additional    json.RawMessage
 	Board         *Board
 	Creator       *User
 	Column        *Column

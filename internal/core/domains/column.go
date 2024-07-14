@@ -7,6 +7,7 @@ type Column struct {
 	OrderPosition int    `json:"order_position,omitempty"`
 	IsFinal       bool   `json:"is_final,omitempty"`
 	CreatedBy     uint   `json:"created_by,omitempty"`
+	Board         *Board `json:"board,omitempty"`
 }
 
 type ColumnUpdate struct {

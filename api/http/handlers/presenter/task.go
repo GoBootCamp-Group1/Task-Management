@@ -1,10 +1,10 @@
 package presenter
 
 import (
-	"encoding/json"
+	"time"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/google/uuid"
-	"time"
 )
 
 type TaskPresenter struct {
@@ -17,7 +17,6 @@ type TaskPresenter struct {
 	StartDateTime *time.Time               `json:"start_datetime"`
 	EndDateTime   *time.Time               `json:"end_datetime"`
 	StoryPoint    int                      `json:"story_point"`
-	Additional    json.RawMessage          `json:"additional"`
 	Creator       *UserPresenter           `json:"creator"`
 	Column        *ColumnOutBoundPresenter `json:"column"`
 	Parent        *TaskPresenter           `json:"parent"`
@@ -56,7 +55,6 @@ func NewTaskPresenter(task *domains.Task) *TaskPresenter {
 		StartDateTime: task.StartDateTime,
 		EndDateTime:   task.EndDateTime,
 		StoryPoint:    task.StoryPoint,
-		Additional:    task.Additional,
 		Creator:       creator,
 		Column:        column,
 		//Parent:        parent,

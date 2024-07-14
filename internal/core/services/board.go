@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
-	"fmt"
-	"errors"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/gofiber/fiber/v2"
 )
 
 type BoardService struct {
@@ -16,7 +16,7 @@ type BoardService struct {
 }
 
 var (
-	ErrUserIsAlreadyBoardMember = errors.New("user is already a board member")
+	ErrUserIsAlreadyBoardMember = fiber.NewError(fiber.StatusBadRequest, "user is already a board member")
 )
 
 func NewBoardService(boardRepo ports.BoardRepo, boardMemberRepo ports.BoardMemberRepo, userRepo ports.UserRepo, roleRepo ports.RoleRepository) *BoardService {
@@ -90,10 +90,10 @@ func (s *BoardService) HasRequiredBoardAccess(ctx context.Context, roleW domains
 	}
 	roleWeight, errParse := domains.ParseRole(r.Name)
 	if errParse != nil {
-		return false, errParse
+		return false, &fiber.Error{Code: fiber.StatusInternalServerError, Message: errParse.Error()}
 	}
 	if roleWeight > roleW {
-		return false, fmt.Errorf("access denied")
+		return false, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied!"}
 	}
 	return true, nil
 }
