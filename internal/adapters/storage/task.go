@@ -110,7 +110,8 @@ func (r *taskRepo) Update(ctx context.Context, task *domains.Task) error {
 
 	existingTask.Name = task.Name
 	existingTask.ParentID = task.ParentID
-	existingTask.AssigneeID = task.AssigneeID
+	//we use AssignUserToTask to assigning task
+	//existingTask.AssigneeID = task.AssigneeID
 	existingTask.ColumnID = task.ColumnID
 	existingTask.OrderPosition = task.OrderPosition
 	existingTask.Name = task.Name
@@ -200,4 +201,17 @@ func (r *taskRepo) GetAllTaskDependencies(ctx context.Context) ([]domains.TaskDe
 		return nil, fmt.Errorf("error fetching task dependencies: %v", result.Error)
 	}
 	return mappers.TaskDependencyEntitiesToDomains(dependencies), nil
+}
+
+func (r *taskRepo) AssignUserToTask(ctx context.Context, taskID uint, userID uint) error {
+	var task entities.Task
+	err := r.db.WithContext(ctx).Model(&entities.Task{}).Where("task_id = ?", taskID).First(&task).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("task not found")
+		}
+		return err
+	}
+	task.AssigneeID = &userID
+	return r.db.WithContext(ctx).Save(&task).Error
 }

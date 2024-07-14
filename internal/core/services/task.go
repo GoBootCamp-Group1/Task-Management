@@ -345,3 +345,39 @@ func (s *TaskService) DeleteComment(ctx context.Context, userID uint, boardID ui
 	}
 	return nil
 }
+
+func (s *TaskService) AssignUserToTask(ctx context.Context, userID uint, taskID uint) error {
+	// Fetch task by ID
+	task, err := s.repo.GetByID(ctx, taskID)
+	if err != nil {
+		return fmt.Errorf("repository: can not fetch task #%d: %w", taskID, err)
+	}
+
+	// Check permission to assign user
+	hasAccess, _ := s.boardService.HasRequiredBoardAccess(ctx, domains.Editor, userID, task.BoardID)
+	if !hasAccess {
+		return fmt.Errorf("access denied")
+	}
+
+	err = s.repo.AssignUserToTask(ctx, taskID, userID)
+	//// Update task's assignee
+	//task.AssigneeID = &userID
+	//err = s.repo.Update(ctx, task)
+	//if err != nil {
+	//	return fmt.Errorf("repository: can not update task: %w", err)
+	//}
+
+	// Send notification to the assignee
+	if err == nil {
+		input := ports.NotificationInput{
+			Type:    ports.NewTaskAssignedNotification,
+			Message: fmt.Sprintf("Hey, %s. You have been assigned to a new task.", task.Assignee.Name),
+		}
+		err := s.notifier.SendInAppNotification(ctx, task.Assignee.ID, input)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
