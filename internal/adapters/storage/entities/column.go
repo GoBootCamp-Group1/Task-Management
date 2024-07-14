@@ -9,4 +9,6 @@ type Column struct {
 	OrderPosition int
 	IsFinal       bool
 	CreatedBy     uint
+
+	Board *Board
 }
