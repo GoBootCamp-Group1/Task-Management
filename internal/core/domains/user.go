@@ -2,13 +2,14 @@ package domains
 
 import (
 	"crypto/sha256"
-	"errors"
 	"fmt"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 var (
-	ErrUserNotFound    = errors.New("user not found")
-	ErrInvalidPassword = errors.New("invalid user password")
+	ErrUserNotFound    = fiber.NewError(fiber.StatusNotFound, "User not found")
+	ErrInvalidPassword = fiber.NewError(fiber.StatusUnauthorized, "Invalid user password")
 )
 
 type UserRole uint8

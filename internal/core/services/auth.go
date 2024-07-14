@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+	"time"
+
 	user_model "github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	user_repo "github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/jwt"
-	"time"
+	"github.com/gofiber/fiber/v2"
 
 	jwt2 "github.com/golang-jwt/jwt/v5"
 )
@@ -45,7 +47,7 @@ func (s *AuthService) Login(ctx context.Context, email, pass string) (*UserToken
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, &fiber.Error{Code: fiber.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// calc expiration time values
@@ -56,12 +58,12 @@ func (s *AuthService) Login(ctx context.Context, email, pass string) (*UserToken
 
 	authToken, err := jwt.CreateToken(s.secret, s.userClaims(user, authExp))
 	if err != nil {
-		return nil, err // todo
+		return nil, &fiber.Error{Code: fiber.StatusInternalServerError, Message: err.Error()} // todo
 	}
 
 	refreshToken, err := jwt.CreateToken(s.secret, s.userClaims(user, refreshExp))
 	if err != nil {
-		return nil, err // todo
+		return nil, &fiber.Error{Code: fiber.StatusInternalServerError, Message: err.Error()} // todo
 	}
 
 	return &UserToken{
@@ -74,7 +76,7 @@ func (s *AuthService) Login(ctx context.Context, email, pass string) (*UserToken
 func (s *AuthService) RefreshAuth(ctx context.Context, refreshToken string) (*UserToken, error) {
 	claim, err := jwt.ParseToken(refreshToken, s.secret)
 	if err != nil {
-		return nil, err
+		return nil, &fiber.Error{Code: fiber.StatusUnauthorized, Message: "Invalid refresh token"}
 	}
 
 	u, err := (*s.userRepo).GetByID(ctx, claim.UserID)
@@ -93,7 +95,7 @@ func (s *AuthService) RefreshAuth(ctx context.Context, refreshToken string) (*Us
 
 	authToken, err := jwt.CreateToken(s.secret, s.userClaims(u, authExp))
 	if err != nil {
-		return nil, err // todo
+		return nil, &fiber.Error{Code: fiber.StatusInternalServerError, Message: err.Error()} // todo
 	}
 
 	return &UserToken{

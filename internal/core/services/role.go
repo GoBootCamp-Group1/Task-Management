@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"errors"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
@@ -85,7 +85,7 @@ func createRoleWithRetry(s *RoleService, role domains.Role, ctx context.Context)
 	for i := 0; i < maxRetries; i++ {
 		err := s.CreateRole(ctx, &role)
 		if err != nil {
-			if errors.Is(err, storage.ErrRoleAlreadyExists) {
+			if err.Error() == storage.ErrRoleAlreadyExists {
 				// Role already exists, no need to retry
 				return nil
 			}

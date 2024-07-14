@@ -9,11 +9,11 @@ import (
 )
 
 func InitColumnRoutes(router *fiber.Router, container *app.Container, cfg config.Server) {
-	columnGroup := (*router).Group("/columns", middlerwares.Auth([]byte(cfg.TokenSecret)))
+	columnGroup := (*router).Group("/boards/:boardId/columns", middlerwares.Auth([]byte(cfg.TokenSecret)))
 
-	columnGroup.Post("/:boardId", handlers.CreateColumn(container.ColumnService()))
+	columnGroup.Post("", handlers.CreateColumn(container.ColumnService()))
+	columnGroup.Get("", handlers.GetAllColumns(container.ColumnService()))
 	columnGroup.Get("/:id", handlers.GetColumnByID(container.ColumnService()))
-	columnGroup.Get("/:boardId/all", handlers.GetAllColumns(container.ColumnService()))
 	columnGroup.Put("/:id", handlers.UpdateColumn(container.ColumnService()))
 	columnGroup.Put("/:id/move", handlers.MoveColumn(container.ColumnService()))
 	columnGroup.Put("/:id/final", handlers.ChangeFinalColumn(container.ColumnService()))

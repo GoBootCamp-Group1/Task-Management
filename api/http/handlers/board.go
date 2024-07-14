@@ -39,19 +39,19 @@ func CreateBoard(boardService *services.BoardService) fiber.Handler {
 
 		if err := c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing board creation request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board creation request body"})
 		}
 
 		err := validate.Struct(input)
 		if err != nil {
 			log.ErrorLog.Printf("Error validating board creation request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error validating board creation request body"})
 		}
 
 		userId, err := utils.GetUserID(c)
 		if err != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error loading user"})
 		}
 
 		boardModel := domains.Board{
@@ -63,7 +63,7 @@ func CreateBoard(boardService *services.BoardService) fiber.Handler {
 		err = boardService.CreateBoard(c.Context(), &boardModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error creating board: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "Board created successfully"
 		log.InfoLog.Println(msg)
@@ -89,18 +89,13 @@ func GetBoardByID(boardService *services.BoardService) fiber.Handler {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Parsing board id"})
 		}
 
 		board, err := boardService.GetBoardByID(c.Context(), uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error getting board: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
-		}
-
-		if board == nil {
-			log.ErrorLog.Printf("Error getting board: %v\n", ErrBoardNotFound)
-			return OldSendError(c, ErrBoardNotFound, fiber.StatusNotFound)
+			return SendError(c, err)
 		}
 
 		msg := "Board loaded successfully"
@@ -133,19 +128,19 @@ func UpdateBoard(boardService *services.BoardService) fiber.Handler {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board id"})
 		}
 		var input UpdateBoardRequest
 
 		if err = c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing board update request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board update request body"})
 		}
 
 		err = validate.Struct(input)
 		if err != nil {
 			log.ErrorLog.Printf("Error validating board update request body: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error validating board update request body"})
 		}
 
 		boardModel := domains.Board{
@@ -157,7 +152,7 @@ func UpdateBoard(boardService *services.BoardService) fiber.Handler {
 		err = boardService.UpdateBoard(c.Context(), &boardModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error updating board: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "Board updated successfully"
 		log.InfoLog.Println(msg)
@@ -182,13 +177,13 @@ func DeleteBoard(boardService *services.BoardService) fiber.Handler {
 		id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return OldSendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board id"})
 		}
 
 		err = boardService.DeleteBoard(c.Context(), uint(id))
 		if err != nil {
 			log.ErrorLog.Printf("Error deleting board: %v\n", err)
-			return OldSendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "Board deleted successfully"
 		log.InfoLog.Println(msg)
@@ -220,7 +215,7 @@ func InviteUserToBoard(boardService *services.BoardService) fiber.Handler {
 		boardId, err := strconv.ParseUint(c.Params("id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board id"})
 		}
 
 		validate := validation.NewValidator()
@@ -228,17 +223,17 @@ func InviteUserToBoard(boardService *services.BoardService) fiber.Handler {
 
 		if err = c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing user invitation request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing user invitation request body"})
 		}
 
 		if err = validate.Struct(input); err != nil {
 			log.ErrorLog.Printf("Error validating user invitation request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error validating user invitation request body"})
 		}
 
 		if err = boardService.InviteUserToBoard(c.Context(), input.UserId, uint(boardId), input.RoleName); err != nil {
 			log.ErrorLog.Printf("Error inviting user: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "User invited successfully"
 		log.InfoLog.Println(msg)
@@ -265,18 +260,18 @@ func RemoveUserFromBoard(boardService *services.BoardService) fiber.Handler {
 		boardId, err := strconv.ParseUint(c.Params("board_id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board id"})
 		}
 
 		userId, err := strconv.ParseUint(c.Params("user_id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing user id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing user id"})
 		}
 
 		if err = boardService.RemoveUserFromBoard(c.Context(), uint(userId), uint(boardId)); err != nil {
 			log.ErrorLog.Printf("Error removing user from board: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "User removed from board successfully"
 		log.InfoLog.Println(msg)
@@ -308,13 +303,13 @@ func ChangeUserRoleInBoard(boardService *services.BoardService) fiber.Handler {
 		boardId, err := strconv.ParseUint(c.Params("board_id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing board id"})
 		}
 
 		userId, err := strconv.ParseUint(c.Params("user_id"), 10, 32)
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing user id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing user id"})
 		}
 
 		validate := validation.NewValidator()
@@ -322,17 +317,17 @@ func ChangeUserRoleInBoard(boardService *services.BoardService) fiber.Handler {
 
 		if err = c.BodyParser(&input); err != nil {
 			log.ErrorLog.Printf("Error parsing user role change request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, err)
 		}
 
 		if err = validate.Struct(input); err != nil {
 			log.ErrorLog.Printf("Error validating user role change request body: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, err)
 		}
 
 		if err = boardService.ChangeUserRole(c.Context(), uint(userId), uint(boardId), input.RoleName); err != nil {
 			log.ErrorLog.Printf("Error changeing user role: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		msg := "User role changed successfully"
 		log.InfoLog.Println(msg)

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"log"
+
 	"github.com/GoBootCamp-Group1/Task-Management/config"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/cache"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/notifier"
@@ -9,7 +11,6 @@ import (
 	"github.com/GoBootCamp-Group1/Task-Management/pkg/notification"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"log"
 )
 
 type Container struct {
@@ -175,7 +176,7 @@ func (a *Container) setColumnService() {
 	if a.columnService != nil {
 		return
 	}
-	a.columnService = services.NewColumnService(storage.NewColumnRepo(a.dbConn))
+	a.columnService = services.NewColumnService(storage.NewColumnRepo(a.dbConn), a.boardService)
 }
 
 func (a *Container) setNotificationService() {
