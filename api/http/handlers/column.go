@@ -133,7 +133,7 @@ func GetColumnByID(columnService *services.ColumnService) fiber.Handler {
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /columns/{boardId} [get]
+// @Router /columns/{boardId}/all [get]
 // @Security ApiKeyAuth
 func GetAllColumns(columnService *services.ColumnService) fiber.Handler {
 	return func(c *fiber.Ctx) error {

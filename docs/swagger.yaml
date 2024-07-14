@@ -850,32 +850,6 @@ paths:
       tags:
       - Board
   /columns/{boardId}:
-    get:
-      description: gets all columns of a bard
-      parameters:
-      - description: Board ID
-        in: path
-        name: boardId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Response'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      security:
-      - ApiKeyAuth: []
-      summary: Get Columns
-      tags:
-      - Column
     post:
       consumes:
       - application/json
@@ -904,6 +878,33 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create Column
+      tags:
+      - Column
+  /columns/{boardId}/all:
+    get:
+      description: gets all columns of a bard
+      parameters:
+      - description: Board ID
+        in: path
+        name: boardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get Columns
       tags:
       - Column
   /columns/{id}:
