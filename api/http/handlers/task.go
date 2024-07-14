@@ -620,21 +620,21 @@ func CreateTaskComment(taskService *services.TaskService) fiber.Handler {
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
-			return SendError(c, errUserID, fiber.StatusInternalServerError)
+			return SendError(c, &fiber.Error{Code: fiber.StatusUnauthorized, Message: "Invalid token"})
 		}
 
 		//Get Board ID
 		boardID, errBoardID := c.ParamsInt("boardID")
 		if errBoardID != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", errBoardID)
-			return SendError(c, ErrInvalidBoardIDParam, fiber.StatusBadRequest)
+			return SendError(c, ErrInvalidBoardIDParam)
 		}
 
 		//Get Task ID
 		taskID, errTaskID := c.ParamsInt("taskID")
 		if errTaskID != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", errTaskID)
-			return SendError(c, ErrInvalidTaskIDParam, fiber.StatusBadRequest)
+			return SendError(c, ErrInvalidTaskIDParam)
 		}
 
 		taskCommentModel := domains.TaskComment{
@@ -646,7 +646,7 @@ func CreateTaskComment(taskService *services.TaskService) fiber.Handler {
 		createdComment, err := taskService.CreateComment(c.Context(), userID, uint(boardID), &taskCommentModel)
 		if err != nil {
 			log.ErrorLog.Printf("Error creating task: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		log.InfoLog.Println("Comment created successfully")
 
@@ -676,20 +676,20 @@ func TaskCommentsList(taskService *services.TaskService) fiber.Handler {
 		boardID, err := c.ParamsInt("boardID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, ErrInvalidBoardIDParam)
 		}
 
 		taskID, err := c.ParamsInt("taskID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing task id"})
 		}
 
 		//Get User ID
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
-			return SendError(c, errUserID, fiber.StatusInternalServerError)
+			return SendError(c, &fiber.Error{Code: fiber.StatusUnauthorized, Message: "Invalid token"})
 		}
 
 		// init variables for pagination
@@ -698,12 +698,12 @@ func TaskCommentsList(taskService *services.TaskService) fiber.Handler {
 		comments, total, err := taskService.GetTaskComments(c.Context(), userID, uint(boardID), uint(taskID), uint(page), uint(pageSize))
 		if err != nil {
 			log.ErrorLog.Printf("Error gettings comments: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 
 		if len(comments) == 0 {
 			log.ErrorLog.Printf("Error getting comments: %v\n", ErrNoTaskFound)
-			return SendError(c, ErrNoTaskFound, fiber.StatusNotFound)
+			return SendError(c, ErrNoTaskFound)
 		}
 
 		//generate response data
@@ -746,30 +746,30 @@ func GetCommentByID(taskService *services.TaskService) fiber.Handler {
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
 			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
-			return SendError(c, errUserID, fiber.StatusInternalServerError)
+			return SendError(c, &fiber.Error{Code: fiber.StatusUnauthorized, Message: "Invalid token"})
 		}
 
 		boardID, err := c.ParamsInt("boardID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, ErrInvalidBoardIDParam)
 		}
 
 		taskID, err := c.ParamsInt("taskID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing task id"})
 		}
 
 		comment, err := taskService.GetTaskComment(c.Context(), userID, uint(boardID), uint(taskID), id)
 		if err != nil {
 			log.ErrorLog.Printf("Error getting comment: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 
 		if comment == nil {
 			log.ErrorLog.Printf("Error getting comment: %v\n", ErrCommentNotFound)
-			return SendError(c, ErrCommentNotFound, fiber.StatusNotFound)
+			return SendError(c, ErrCommentNotFound)
 		}
 		log.InfoLog.Println("Comment loaded successfully")
 
@@ -801,26 +801,26 @@ func DeleteComment(taskService *services.TaskService) fiber.Handler {
 		boardID, err := c.ParamsInt("boardID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, ErrInvalidBoardIDParam)
 		}
 
 		taskID, err := c.ParamsInt("taskID")
 		if err != nil {
 			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
-			return SendError(c, err, fiber.StatusBadRequest)
+			return SendError(c, &fiber.Error{Code: fiber.StatusBadRequest, Message: "Error parsing task id"})
 		}
 
 		//Get User ID
 		userID, errUserID := utils.GetUserID(c)
 		if errUserID != nil {
 			log.ErrorLog.Printf("Error loading task: %v\n", errUserID)
-			return SendError(c, errUserID, fiber.StatusInternalServerError)
+			return SendError(c, &fiber.Error{Code: fiber.StatusForbidden, Message: "Access denied"})
 		}
 
 		err = taskService.DeleteComment(c.Context(), userID, uint(boardID), uint(taskID), id)
 		if err != nil {
 			log.ErrorLog.Printf("Error deleting comment: %v\n", err)
-			return SendError(c, err, fiber.StatusInternalServerError)
+			return SendError(c, err)
 		}
 		log.InfoLog.Println("Comment deleted successfully")
 

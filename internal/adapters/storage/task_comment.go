@@ -3,10 +3,12 @@ package storage
 import (
 	"context"
 	"errors"
+
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/domains"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/core/ports"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -27,7 +29,7 @@ func (r *taskCommentRepo) Create(ctx context.Context, comment *domains.TaskComme
 
 	newComment := mappers.DomainToCommentEntity(comment)
 	if err := r.db.Debug().WithContext(ctx).Create(&newComment).Error; err != nil {
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	comment.ID = newComment.ID
 
@@ -42,9 +44,9 @@ func (r *taskCommentRepo) GetByID(ctx context.Context, id string) (*domains.Task
 		First(&comment).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, fiber.NewError(fiber.StatusNotFound, "Comment not found!")
 		}
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return mappers.TaskCommentEntityToDomain(&comment), nil
 }
@@ -59,12 +61,16 @@ func (r *taskCommentRepo) Delete(ctx context.Context, id string) error {
 	err := r.db.WithContext(ctx).Model(&entities.TaskComment{}).Where("id = ?", id).First(&existingTaskComment).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
+			return fiber.NewError(fiber.StatusNotFound, "Comment not found!")
 		}
 		return err
 	}
 
-	return r.db.WithContext(ctx).Model(&entities.TaskComment{}).Delete(&existingTaskComment).Error
+	if err := r.db.WithContext(ctx).Model(&entities.TaskComment{}).Delete(&existingTaskComment).Error; err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return nil
 }
 
 func (r *taskCommentRepo) GetListByTaskID(ctx context.Context, taskID uint, limit uint, offset uint) ([]domains.TaskComment, uint, error) {
@@ -78,7 +84,7 @@ func (r *taskCommentRepo) GetListByTaskID(ctx context.Context, taskID uint, limi
 	//calculate total entities
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+		return nil, 0, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	//apply offset
@@ -94,9 +100,9 @@ func (r *taskCommentRepo) GetListByTaskID(ctx context.Context, taskID uint, limi
 	//fetch entities
 	if err := query.Find(&commentEntities).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, 0, nil
+			return nil, 0, fiber.NewError(fiber.StatusNotFound, "There is no comment!")
 		}
-		return nil, 0, err
+		return nil, 0, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	commentModels := mappers.TaskCommentEntitiesToDomain(commentEntities)

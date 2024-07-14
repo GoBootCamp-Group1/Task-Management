@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/entities"
 	"github.com/GoBootCamp-Group1/Task-Management/internal/adapters/storage/mappers"
@@ -214,9 +213,9 @@ func (r *taskRepo) DependencyExists(ctx context.Context, taskID, dependentTaskID
 
 func (r *taskRepo) GetAllTaskDependencies(ctx context.Context) ([]domains.TaskDependency, error) {
 	var dependencies []entities.TaskDependency
-	result := r.db.WithContext(ctx).Find(&dependencies)
-	if result.Error != nil {
-		return nil, fmt.Errorf("error fetching task dependencies: %v", result.Error)
+	result := r.db.WithContext(ctx).Find(&dependencies).Error
+	if result != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, result.Error())
 	}
 	return mappers.TaskDependencyEntitiesToDomains(dependencies), nil
 }
