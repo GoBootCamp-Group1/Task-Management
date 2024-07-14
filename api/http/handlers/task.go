@@ -35,6 +35,8 @@ var (
 	ErrInvalidEndDatetimeLayout   = fiber.NewError(fiber.StatusBadRequest, "invalid end datetime format, example: "+dateTimeLayout)
 	ErrTaskNotFound               = fiber.NewError(fiber.StatusNotFound, "Task not found")
 	ErrNoTaskFound                = fiber.NewError(fiber.StatusNotFound, "No tasks found")
+	ErrInvalidTaskIDParam         = fiber.NewError(fiber.StatusNotFound, "invalid task id")
+	ErrCommentNotFound            = fiber.NewError(fiber.StatusNotFound, "Comment not found")
 )
 
 // CreateTask creates a new task
@@ -346,9 +348,10 @@ func DeleteTask(taskService *services.TaskService) fiber.Handler {
 			log.ErrorLog.Printf("Error deleting task: %v\n", err)
 			return SendError(c, err)
 		}
-		log.InfoLog.Println("Task deleted successfully")
+		msg := "Task deleted successfully"
+		log.InfoLog.Println(msg)
 
-		return c.SendStatus(fiber.StatusNoContent)
+		return SendSuccessResponse(c, msg, id)
 	}
 }
 
@@ -584,5 +587,243 @@ func GetTaskDependencies(taskService *services.TaskService) fiber.Handler {
 		msg := fmt.Sprintf("Retrieved dependencies for task #%d", taskID)
 		log.InfoLog.Println(msg)
 		return SendSuccessResponse(c, msg, taskDependencies)
+	}
+}
+
+type TaskCommentRequest struct {
+	Comment string `json:"comment" validate:"required,min=3,max=50" example:"new comment"`
+}
+
+// CreateTaskComment creates a new task comment
+// @Summary Create Task comment
+// @Description creates a task comment
+// @Tags Task
+// @Accept  json
+// @Produce json
+// @Param   body  body      TaskCommentRequest  true  "Create Task Comment"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/comments [post]
+// @Security ApiKeyAuth
+func CreateTaskComment(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		var input TaskCommentRequest
+
+		err := ValidateAndFill(c, &input)
+		if err != nil {
+			return err
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		//Get Board ID
+		boardID, errBoardID := c.ParamsInt("boardID")
+		if errBoardID != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", errBoardID)
+			return SendError(c, ErrInvalidBoardIDParam, fiber.StatusBadRequest)
+		}
+
+		//Get Task ID
+		taskID, errTaskID := c.ParamsInt("taskID")
+		if errTaskID != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", errTaskID)
+			return SendError(c, ErrInvalidTaskIDParam, fiber.StatusBadRequest)
+		}
+
+		taskCommentModel := domains.TaskComment{
+			UserID:  userID,
+			TaskID:  uint(taskID),
+			Comment: input.Comment,
+		}
+
+		createdComment, err := taskService.CreateComment(c.Context(), userID, uint(boardID), &taskCommentModel)
+		if err != nil {
+			log.ErrorLog.Printf("Error creating task: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+		log.InfoLog.Println("Comment created successfully")
+
+		return SendSuccessResponse(
+			c,
+			"Successfully created.",
+			presenter.NewTaskCommentPresenter(createdComment),
+		)
+	}
+}
+
+// TaskCommentsList get task comments
+// @Summary Get Tasks
+// @Tags Task
+// @Description gets comments for a task
+// @Produce json
+// @Param   boardID  path     string  true  "Board ID"
+// @Param   taskID  path     string  true  "Task ID"
+// @Success 200 {array} Response
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/comments [get]
+// @Security ApiKeyAuth
+func TaskCommentsList(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		// init variables for pagination
+		page, pageSize := PageAndPageSize(c)
+
+		comments, total, err := taskService.GetTaskComments(c.Context(), userID, uint(boardID), uint(taskID), uint(page), uint(pageSize))
+		if err != nil {
+			log.ErrorLog.Printf("Error gettings comments: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		if len(comments) == 0 {
+			log.ErrorLog.Printf("Error getting comments: %v\n", ErrNoTaskFound)
+			return SendError(c, ErrNoTaskFound, fiber.StatusNotFound)
+		}
+
+		//generate response data
+		taskCommentPresenters := make([]*presenter.TaskCommentPresenter, len(comments))
+		for i, comment := range comments {
+			taskCommentPresenters[i] = presenter.NewTaskCommentPresenter(&comment)
+		}
+		log.InfoLog.Println("Tasks loaded successfully")
+
+		return SendSuccessPaginateResponse(
+			c,
+			"Successfully fetched.",
+			taskCommentPresenters,
+			uint(page),
+			uint(pageSize),
+			total,
+		)
+	}
+}
+
+// GetCommentByID get a comment
+// @Summary Get Comment
+// @Description gets a task comment
+// @Tags Task
+// @Produce json
+// @Param   boardID      path     string  true  "Board ID"
+// @Param   taskID      path     string  true  "Task ID"
+// @Param   id      path     string  true  "Comment ID"
+// @Success 200 {object} Response
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/comments/{id} [get]
+// @Security ApiKeyAuth
+func GetCommentByID(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading user: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		comment, err := taskService.GetTaskComment(c.Context(), userID, uint(boardID), uint(taskID), id)
+		if err != nil {
+			log.ErrorLog.Printf("Error getting comment: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+
+		if comment == nil {
+			log.ErrorLog.Printf("Error getting comment: %v\n", ErrCommentNotFound)
+			return SendError(c, ErrCommentNotFound, fiber.StatusNotFound)
+		}
+		log.InfoLog.Println("Comment loaded successfully")
+
+		return SendSuccessResponse(
+			c,
+			"Successfully fetched.",
+			presenter.NewTaskCommentPresenter(comment),
+		)
+	}
+}
+
+// DeleteComment delete a comment
+// @Summary Delete Comment
+// @Description deleted a comment
+// @Tags Task
+// @Produce json
+// @Param   boardID      path     string  true  "Board ID"
+// @Param   taskID       path     string  true  "Task ID"
+// @Param   id      	 path     string  true  "Task ID"
+// @Success 204
+// @Failure 400
+// @Failure 500
+// @Router /boards/{boardID}/tasks/{taskID}/comments/{id} [delete]
+// @Security ApiKeyAuth
+func DeleteComment(taskService *services.TaskService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		boardID, err := c.ParamsInt("boardID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing board id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		taskID, err := c.ParamsInt("taskID")
+		if err != nil {
+			log.ErrorLog.Printf("Error parsing task id: %v\n", err)
+			return SendError(c, err, fiber.StatusBadRequest)
+		}
+
+		//Get User ID
+		userID, errUserID := utils.GetUserID(c)
+		if errUserID != nil {
+			log.ErrorLog.Printf("Error loading task: %v\n", errUserID)
+			return SendError(c, errUserID, fiber.StatusInternalServerError)
+		}
+
+		err = taskService.DeleteComment(c.Context(), userID, uint(boardID), uint(taskID), id)
+		if err != nil {
+			log.ErrorLog.Printf("Error deleting comment: %v\n", err)
+			return SendError(c, err, fiber.StatusInternalServerError)
+		}
+		log.InfoLog.Println("Comment deleted successfully")
+
+		return c.SendStatus(fiber.StatusNoContent)
 	}
 }
